@@ -29,12 +29,14 @@ export default function OnboardingPage() {
       return;
     }
 
-    const { error } = await supabase.from("profiles").upsert({
-      id: session.user.id,
-      email: session.user.email,
+    const { error } = await supabase
+    .from("profiles")
+    .update({
       company_type: companyType,
       company_name: companyName,
-    });
+    })
+    .eq("id", session.user.id);
+  
 
     if (error) {
       console.error("❌ Error updating profile:", error.message);
