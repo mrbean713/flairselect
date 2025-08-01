@@ -1,103 +1,212 @@
-import Image from "next/image";
+"use client";
+
+import {
+  FaGoogle,
+  FaTimesCircle,
+  FaCheckCircle,
+  FaArrowRight
+} from "react-icons/fa";
+import { useState, useEffect } from 'react';
+import Link from 'next/link';
 
 export default function Home() {
-  return (
-    <div className="font-sans grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="font-mono list-inside list-decimal text-sm/6 text-center sm:text-left">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] font-mono font-semibold px-1 py-0.5 rounded">
-              src/app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
+  const [isVisible, setIsVisible] = useState(false);
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+  useEffect(() => {
+    setIsVisible(true);
+  }, []);
+
+  return (
+    <main className="min-h-screen bg-gray-50 text-gray-900">
+      {/* Clean Header */}
+      <header className="border-b border-gray-200 bg-white/80 backdrop-blur-sm sticky top-0 z-50">
+        <div className="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
+          <div className="text-2xl font-bold text-red-600">
+            FLAIR
+          </div>
+          <div className="flex items-center gap-6">
+            <Link href="/forms?mode=login">
+              <button className="text-gray-600 hover:text-gray-900 transition-colors font-medium">
+                Login
+              </button>
+            </Link>
+            <Link href="/forms?mode=signup">
+              <button className="bg-red-600 text-white px-6 py-2 rounded-lg font-medium hover:bg-red-700 transition-colors">
+                Sign Up
+              </button>
+            </Link>
+          </div>
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
-    </div>
+      </header>
+
+      {/* Hero Section */}
+      <section className="pt-20 pb-16 px-6">
+        <div className="max-w-7xl mx-auto">
+          <div className="flex flex-col lg:flex-row gap-16 items-start">
+            
+            {/* Hero Content */}
+            <div className="w-full lg:w-1/2">
+              <div className={`transform transition-all duration-1000 ${isVisible ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0'}`}>
+                <h2 className="text-lg text-gray-600 mb-3 font-medium">
+                  Welcome to
+                </h2>
+                <h1 className="text-7xl sm:text-8xl lg:text-9xl font-black mb-8 leading-none tracking-tight">
+                  FLAIR<br />
+                  <span className="text-red-600">Select</span>
+                </h1>
+                <p className="text-xl text-gray-700 max-w-xl leading-relaxed mb-12">
+                  The fastest, most precise influencer sourcing engine in the world. <br />
+                  We deliver creators for <span className="font-semibold text-gray-900">any niche, any criteria</span> — no matter how specific.
+                  <br /><br />
+                  Built with proprietary tools. Trusted by the best. Better than agencies.
+                </p>
+                
+                <div className="space-y-4 w-full max-w-sm">
+                  <Link href="/forms?mode=login">
+                    <button className="w-full bg-gray-900 text-white py-4 text-lg font-semibold rounded-xl hover:bg-gray-800 transition-all duration-200 shadow-lg hover:shadow-xl">
+                      Login
+                    </button>
+                  </Link>
+                  <Link href="/forms?mode=signup">
+                    <button className="w-full bg-white text-gray-900 border-2 border-gray-200 py-4 text-lg font-semibold rounded-xl hover:border-gray-300 hover:bg-gray-50 transition-all duration-200">
+                      Sign Up
+                    </button>
+                  </Link>
+                  {/*
+                  <button className="w-full bg-blue-600 text-white py-4 text-lg font-semibold rounded-xl hover:bg-blue-700 transition-all duration-200 flex items-center justify-center gap-3 shadow-lg hover:shadow-xl">
+                    <FaGoogle className="text-lg" /> Sign Up with Google
+                  </button>
+                  */}
+                </div>
+              </div>
+            </div>
+
+            {/* Comparison Section */}
+            <div className="w-full lg:w-1/2">
+              <div className="bg-white rounded-2xl border border-gray-200 shadow-xl p-8">
+                <div className="flex flex-col sm:flex-row gap-8">
+                  {/* Old Way */}
+                  <div className="flex-1">
+                    <h3 className="text-xl font-bold text-gray-900 mb-6 pb-2 border-b-2 border-red-200">
+                      Old way
+                    </h3>
+                    <div className="space-y-3">
+                      {[
+                        "Can't find enough niche creators",
+                        "Filters don't work",
+                        "Outdated influencer data",
+                        "Complicated platforms",
+                      ].map((text, i) => (
+                        <div
+                          key={i}
+                          className="flex items-start gap-3 p-4 bg-red-50 rounded-lg border-l-4 border-red-200 group hover:bg-red-100 transition-colors cursor-pointer"
+                        >
+                          <FaTimesCircle className="text-red-500 mt-1 flex-shrink-0 group-hover:scale-110 transition-transform" />
+                          <p className="text-gray-700 text-sm leading-relaxed">{text}</p>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Flair Way */}
+                  <div className="flex-1">
+                    <h3 className="text-xl font-bold text-red-600 mb-6 pb-2 border-b-2 border-red-200">
+                      FLAIR way
+                    </h3>
+                    <div className="space-y-3">
+                      {[
+                        "Submit your criteria",
+                        "Receive influencers within 24 hours",
+                        "Get put in contact with desired creators",
+                        "Launch your campaign",
+                      ].map((text, i) => (
+                        <div key={i} className="flex items-start gap-3 p-4 bg-green-50 rounded-lg border-l-4 border-green-200 group hover:bg-green-100 transition-colors cursor-pointer">
+                          <FaCheckCircle className="text-green-500 mt-1 flex-shrink-0 group-hover:scale-110 transition-transform" />
+                          <p className="text-gray-800 font-medium text-sm leading-relaxed">{text}</p>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+
+                {/* CTA Button */}
+                <div className="flex justify-center mt-8 pt-6 border-t border-gray-100">
+                  <button className="bg-red-600 text-white px-8 py-3 rounded-lg font-semibold hover:bg-red-700 transition-all duration-200 flex items-center gap-2 shadow-lg hover:shadow-xl">
+                    Submit Campaign
+                    <FaArrowRight className="group-hover:translate-x-1 transition-transform" />
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Features Section */}
+      <section className="py-20 px-6 bg-white">
+        <div className="max-w-7xl mx-auto">
+          <div className="text-center mb-16">
+            <h2 className="text-4xl font-black text-gray-900 mb-4">
+              Why Our Platform Is Different
+            </h2>
+            <div className="w-24 h-1 bg-red-600 mx-auto"></div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            {[
+              {
+                title: "Any Level of Specificity",
+                description: "No matter how specific your criteria, we'll find creators that match — guaranteed.",
+                number: "01"
+              },
+              {
+                title: "Quality and Quantity",
+                description: "Whether you need creators who match specific niches, location, follower count, or any other criteria — Flair delivers both quality and scale.",
+                number: "02"
+              },
+              {
+                title: "Dynamic",
+                description: "Flair Select doesn't rely on vague filters or outdated tags. Our proprietary tech uses real-time data from social platforms to identify influencers that actually fit your campaign.",
+                number: "03"
+              }
+            ].map((feature, i) => (
+              <div key={i} className="group relative bg-gray-50 rounded-2xl p-8 hover:bg-white hover:shadow-xl transition-all duration-300 border border-gray-100">
+                <div className="text-6xl font-black text-red-100 mb-4 group-hover:text-red-200 transition-colors">
+                  {feature.number}
+                </div>
+                <h3 className="text-xl font-bold text-gray-900 mb-4">
+                  {feature.title}
+                </h3>
+                <p className="text-gray-600 leading-relaxed">
+                  {feature.description}
+                </p>
+                <div className="absolute bottom-0 left-0 w-full h-1 bg-red-600 rounded-b-2xl transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-left"></div>
+              </div>
+            ))}
+          </div>
+
+          <div className="text-center mt-16 max-w-4xl mx-auto">
+            <p className="text-xl text-gray-700 leading-relaxed">
+              This isn't just another generic influencer sourcing platform — it's the future of creator sourcing. Welcome to precision. Welcome to the best.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      {/* Final CTA */}
+      <section className="py-20 px-6 bg-red-600 text-white text-center">
+        <div className="max-w-4xl mx-auto">
+          <h2 className="text-4xl font-black mb-6">
+            Ready to Find Your Perfect Creators?
+          </h2>
+          <p className="text-xl mb-8 text-red-100">
+            Join thousands of brands who trust FLAIR Select for their influencer campaigns.
+          </p>
+          <button className="bg-white text-red-600 px-8 py-4 rounded-xl font-bold text-lg hover:bg-gray-100 transition-colors shadow-xl">
+            Start Your Campaign Today
+          </button>
+        </div>
+      </section>
+    </main>
   );
 }
