@@ -2,10 +2,13 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import { useSession, useSupabaseClient } from "@supabase/auth-helpers-react";
+
 
 export default function OnboardingPage() {
   const router = useRouter();
+  const searchParams = useSearchParams(); // ✅
   const session = useSession();
   const supabase = useSupabaseClient();
   const [companyType, setCompanyType] = useState("");
@@ -13,12 +16,22 @@ export default function OnboardingPage() {
 
   useEffect(() => {
     console.log("👤 Session:", session);
+  
     if (!session) {
       console.log("❌ No session found yet");
-    } else {
-      console.log("✅ Session found:", session.user);
+      return;
     }
-  }, [session]);
+  
+    const fromGoogle = searchParams.get("from") === "google";
+  
+    if (!fromGoogle) {
+      console.log("🚫 User not from Google signup — redirecting to dashboard");
+      router.push("/dashboard");
+    } else {
+      console.log("✅ Google signup detected — stay on onboarding");
+    }
+  }, [session, router, searchParams]);
+  
   
 
   const handleSubmit = async (e: React.FormEvent) => {

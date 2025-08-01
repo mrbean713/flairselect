@@ -77,19 +77,22 @@ export default function Forms() {
   const handleGoogleSignIn = async () => {
     const redirectTo =
       mode === "signup"
-        ? `${window.location.origin}/onboarding`
-        : `${window.location.origin}/dashboard`;
-
-    // ✅ Google OAuth with redirect (metadata cannot be attached here)
+        ? "https://flairselect.vercel.app/auth/callback?from=onboarding"
+        : "https://flairselect.vercel.app/auth/callback?from=dashboard";
+  
     const { error } = await supabase.auth.signInWithOAuth({
       provider: "google",
-      options: { redirectTo },
+      options: {
+        redirectTo,
+      },
     });
-
+  
     if (error) {
       console.error("Google sign-in error:", error.message);
     }
   };
+  
+  
 
   return (
     <main className="min-h-screen bg-gray-50 flex items-center justify-center px-6 py-24">
