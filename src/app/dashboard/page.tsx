@@ -94,7 +94,17 @@ export default function DashboardPage() {
           </div>
         </section>
 
-        {/* The rest of your dashboard (campaigns, CTA, etc.) stays the same */}
+        {/* New Campaign CTA */}
+        <section className="bg-red-600 p-8 rounded-2xl text-center">
+          <h3 className="text-2xl font-bold text-white mb-2">Ready for Your Next Campaign?</h3>
+          <p className="text-red-100 mb-6">Get matched with perfect influencers for your brand in 24 hours or less.</p>
+          <button
+            onClick={() => router.push("/request")}
+            className="inline-flex items-center gap-2 bg-white text-red-600 font-bold py-4 px-8 rounded-xl text-lg hover:bg-gray-100 transition-colors shadow-lg"
+          >
+            <FaRocket /> Request New Campaign
+          </button>
+        </section>
       </div>
     </main>
   );

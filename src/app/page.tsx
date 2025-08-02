@@ -1,41 +1,80 @@
 "use client";
 
 import {
-  FaGoogle,
   FaTimesCircle,
   FaCheckCircle,
   FaArrowRight
 } from "react-icons/fa";
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import { useSession } from "@supabase/auth-helpers-react";
+import { useRouter } from "next/navigation";
+import { createClientComponentClient } from "@supabase/auth-helpers-nextjs";
 
 export default function Home() {
   const [isVisible, setIsVisible] = useState(false);
+  const session = useSession();
+  const supabase = createClientComponentClient();
+  const router = useRouter();
+
+  const [companyName, setCompanyName] = useState<string | null>(null);
 
   useEffect(() => {
     setIsVisible(true);
-  }, []);
+
+    const fetchCompanyName = async () => {
+      if (!session?.user) return;
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("company_name")
+        .eq("id", session.user.id)
+        .single();
+
+      if (!error && data?.company_name) {
+        setCompanyName(data.company_name);
+      }
+    };
+
+    fetchCompanyName();
+  }, [session, supabase]);
+
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+    router.refresh(); // Reloads the UI
+  };
 
   return (
     <main className="min-h-screen bg-gray-50 text-gray-900">
-      {/* Clean Header */}
+      {/* Header */}
       <header className="border-b border-gray-200 bg-white/80 backdrop-blur-sm sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
-          <div className="text-2xl font-bold text-red-600">
-            FLAIR
-          </div>
-          <div className="flex items-center gap-6">
-            <Link href="/forms?mode=login">
-              <button className="text-gray-600 hover:text-gray-900 transition-colors font-medium">
-                Login
+          <div className="text-2xl font-bold text-red-600">FLAIR</div>
+          {session?.user ? (
+            <div className="flex items-center gap-4">
+              <span className="text-gray-600 font-medium">
+                Welcome, {companyName || "Company"}
+              </span>
+              <button
+                onClick={handleLogout}
+                className="bg-red-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-red-700 transition-colors"
+              >
+                Logout
               </button>
-            </Link>
-            <Link href="/forms?mode=signup">
-              <button className="bg-red-600 text-white px-6 py-2 rounded-lg font-medium hover:bg-red-700 transition-colors">
-                Sign Up
-              </button>
-            </Link>
-          </div>
+            </div>
+          ) : (
+            <div className="flex items-center gap-6">
+              <Link href="/forms?mode=login">
+                <button className="text-gray-600 hover:text-gray-900 transition-colors font-medium">
+                  Login
+                </button>
+              </Link>
+              <Link href="/forms?mode=signup">
+                <button className="bg-red-600 text-white px-6 py-2 rounded-lg font-medium hover:bg-red-700 transition-colors">
+                  Sign Up
+                </button>
+              </Link>
+            </div>
+          )}
         </div>
       </header>
 
@@ -43,7 +82,6 @@ export default function Home() {
       <section className="pt-20 pb-16 px-6">
         <div className="max-w-7xl mx-auto">
           <div className="flex flex-col lg:flex-row gap-16 items-start">
-            
             {/* Hero Content */}
             <div className="w-full lg:w-1/2">
               <div className={`transform transition-all duration-1000 ${isVisible ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0'}`}>
@@ -60,24 +98,29 @@ export default function Home() {
                   <br /><br />
                   Built with proprietary tools. Trusted by the best. Better than agencies.
                 </p>
-                
-                <div className="space-y-4 w-full max-w-sm">
-                  <Link href="/forms?mode=login">
-                    <button className="w-full bg-gray-900 text-white py-4 text-lg font-semibold rounded-xl hover:bg-gray-800 transition-all duration-200 shadow-lg hover:shadow-xl">
-                      Login
-                    </button>
-                  </Link>
-                  <Link href="/forms?mode=signup">
-                    <button className="w-full bg-white text-gray-900 border-2 border-gray-200 py-4 text-lg font-semibold rounded-xl hover:border-gray-300 hover:bg-gray-50 transition-all duration-200">
-                      Sign Up
-                    </button>
-                  </Link>
-                  {/*
-                  <button className="w-full bg-blue-600 text-white py-4 text-lg font-semibold rounded-xl hover:bg-blue-700 transition-all duration-200 flex items-center justify-center gap-3 shadow-lg hover:shadow-xl">
-                    <FaGoogle className="text-lg" /> Sign Up with Google
+
+                {/* Dynamic Buttons */}
+                {session?.user ? (
+                  <button
+                    onClick={() => router.push("/dashboard")}
+                    className="w-full bg-gray-900 text-white py-4 text-lg font-semibold rounded-xl hover:bg-gray-800 transition-all duration-200 shadow-lg hover:shadow-xl"
+                  >
+                    Go to Dashboard
                   </button>
-                  */}
-                </div>
+                ) : (
+                  <div className="space-y-4 w-full max-w-sm">
+                    <Link href="/forms?mode=login">
+                      <button className="w-full bg-gray-900 text-white py-4 text-lg font-semibold rounded-xl hover:bg-gray-800 transition-all duration-200 shadow-lg hover:shadow-xl">
+                        Login
+                      </button>
+                    </Link>
+                    <Link href="/forms?mode=signup">
+                      <button className="w-full bg-white text-gray-900 border-2 border-gray-200 py-4 text-lg font-semibold rounded-xl hover:border-gray-300 hover:bg-gray-50 transition-all duration-200">
+                        Sign Up
+                      </button>
+                    </Link>
+                  </div>
+                )}
               </div>
             </div>
 
