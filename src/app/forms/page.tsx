@@ -197,7 +197,7 @@ export default function Forms() {
             className="w-full bg-white text-gray-900 border-2 border-gray-200 py-4 text-lg font-semibold rounded-xl hover:border-gray-300 hover:bg-gray-50 transition-all duration-200 flex items-center justify-center gap-3 shadow-lg hover:shadow-xl"
           >
             <FaGoogle className="text-lg text-blue-600" />
-            {isLogin ? "Sign In with Google" : "Sign Up with Google"}
+            {isLogin ? "Login In with Google" : "Sign Up with Google"}
           </button>
         </form>
       </div>
