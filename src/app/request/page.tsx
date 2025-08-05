@@ -1,10 +1,12 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation"; // ✅ Import router for navigation
 import { createClientComponentClient } from "@supabase/auth-helpers-nextjs";
 
 export default function RequestForm() {
   const supabase = createClientComponentClient();
+  const router = useRouter(); // ✅ Initialize router
 
   const [formData, setFormData] = useState({
     campaignName: "",
@@ -71,23 +73,9 @@ export default function RequestForm() {
 
       if (error) throw error;
 
-      setSuccessMessage("✅ Request submitted successfully!");
-      setFormData({
-        campaignName: "",
-        niche: "",
-        platform: "instagram",
-        minFollowers: "",
-        maxFollowers: "",
-        minViews: "",
-        maxViews: "",
-        gender: "",
-        race: "",
-        location: "",
-        language: "",
-        budget: "",
-        engagementRate: "",
-        notes: "",
-      });
+      // ✅ Redirect to dashboard after success
+      router.push("/dashboard");
+
     } catch (err: any) {
       setErrorMessage(err.message || "Something went wrong.");
     } finally {
