@@ -13,6 +13,8 @@ export default function DashboardPage() {
 
   const [companyName, setCompanyName] = useState<string | null>(null);
   const [email, setEmail] = useState<string | null>(null);
+  const [activeCampaigns, setActiveCampaigns] = useState<number>(0);
+  const [totalRequests, setTotalRequests] = useState<number>(0);
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -32,7 +34,34 @@ export default function DashboardPage() {
       }
     };
 
+    const fetchCampaignStats = async () => {
+      if (!session?.user) return;
+
+      // Total requests
+        // Completed requests for this user
+        const { count: totalCount, error: totalError } = await supabase
+        .from("requests")
+        .select("*", { count: "exact", head: true })
+        .eq("user_id", session.user.id)
+        .eq("status", "completed");
+
+
+      if (!totalError) setTotalRequests(totalCount || 0);
+
+      // Active campaigns (within 24 hours)
+      const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+      const { count: activeCount, error: activeError } = await supabase
+        .from("requests")
+        .select("*", { count: "exact", head: true })
+        .eq("user_id", session.user.id)
+        .eq("status", "active")
+        .gte("created_at", twentyFourHoursAgo);
+
+      if (!activeError) setActiveCampaigns(activeCount || 0);
+    };
+
     fetchProfile();
+    fetchCampaignStats();
   }, [session, supabase]);
 
   const handleLogout = async () => {
@@ -46,7 +75,9 @@ export default function DashboardPage() {
         {/* Top Bar */}
         <header className="flex justify-between items-center mb-12 bg-white p-6 rounded-2xl shadow-lg border border-gray-200">
           <div>
-            <h1 className="text-3xl font-black tracking-tight text-gray-900">Flair Select Dashboard</h1>
+            <h1 className="text-3xl font-black tracking-tight text-gray-900">
+              Flair Select Dashboard
+            </h1>
             <p className="text-sm text-gray-500 mt-1">{email || "Loading..."}</p>
           </div>
           <button
@@ -67,37 +98,47 @@ export default function DashboardPage() {
           </p>
         </section>
 
-        {/* Stats Overview */}
+        {/* Stats Overview (Clickable) */}
         <section className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-          <div className="bg-white p-6 rounded-xl shadow-lg border border-gray-200">
+          <button
+            onClick={() => router.push("/active")}
+            className="bg-white p-6 rounded-xl shadow-lg border border-gray-200 text-left hover:shadow-xl transition"
+          >
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-gray-600">Active Campaigns</p>
-                <p className="text-2xl font-bold text-gray-900">2</p>
+                <p className="text-2xl font-bold text-gray-900">{activeCampaigns}</p>
               </div>
               <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
                 <FaCheckCircle className="text-green-600 text-xl" />
               </div>
             </div>
-          </div>
+          </button>
 
-          <div className="bg-white p-6 rounded-xl shadow-lg border border-gray-200">
+          <button
+            onClick={() => router.push("/completed")}
+            className="bg-white p-6 rounded-xl shadow-lg border border-gray-200 text-left hover:shadow-xl transition"
+          >
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-600">Total Requests</p>
-                <p className="text-2xl font-bold text-gray-900">12</p>
+                <p className="text-sm font-medium text-gray-600">Completed Requests</p>
+                <p className="text-2xl font-bold text-gray-900">{totalRequests}</p>
               </div>
               <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
                 <FaRocket className="text-blue-600 text-xl" />
               </div>
             </div>
-          </div>
+          </button>
         </section>
 
         {/* New Campaign CTA */}
         <section className="bg-red-600 p-8 rounded-2xl text-center">
-          <h3 className="text-2xl font-bold text-white mb-2">Ready for Your Next Campaign?</h3>
-          <p className="text-red-100 mb-6">Get matched with perfect influencers for your brand in 24 hours or less.</p>
+          <h3 className="text-2xl font-bold text-white mb-2">
+            Ready for Your Next Campaign?
+          </h3>
+          <p className="text-red-100 mb-6">
+            Get matched with perfect influencers for your brand in 24 hours or less.
+          </p>
           <button
             onClick={() => router.push("/request")}
             className="inline-flex items-center gap-2 bg-white text-red-600 font-bold py-4 px-8 rounded-xl text-lg hover:bg-gray-100 transition-colors shadow-lg"
