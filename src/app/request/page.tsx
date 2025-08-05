@@ -7,6 +7,7 @@ export default function RequestForm() {
   const supabase = createClientComponentClient();
 
   const [formData, setFormData] = useState({
+    campaignName: "",
     niche: "",
     platform: "instagram",
     minFollowers: "",
@@ -40,7 +41,6 @@ export default function RequestForm() {
     setErrorMessage("");
 
     try {
-      // Get current logged-in user
       const {
         data: { user },
         error: userError,
@@ -49,9 +49,9 @@ export default function RequestForm() {
       if (userError) throw userError;
       if (!user) throw new Error("You must be logged in to submit a request.");
 
-      // Insert into Supabase
       const { error } = await supabase.from("requests").insert([
         {
+          campaign_name: formData.campaignName,
           niche: formData.niche,
           platform: formData.platform,
           min_followers: formData.minFollowers ? Number(formData.minFollowers) : null,
@@ -73,6 +73,7 @@ export default function RequestForm() {
 
       setSuccessMessage("✅ Request submitted successfully!");
       setFormData({
+        campaignName: "",
         niche: "",
         platform: "instagram",
         minFollowers: "",
@@ -104,14 +105,25 @@ export default function RequestForm() {
           Request Influencer Campaign
         </h2>
 
-        {successMessage && (
-          <p className="text-green-600 text-center">{successMessage}</p>
-        )}
-        {errorMessage && (
-          <p className="text-red-600 text-center">{errorMessage}</p>
-        )}
+        {successMessage && <p className="text-green-600 text-center">{successMessage}</p>}
+        {errorMessage && <p className="text-red-600 text-center">{errorMessage}</p>}
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {/* Campaign Name */}
+          <div className="md:col-span-2">
+            <label className="block mb-1 font-medium text-gray-700">
+              Campaign Name<span className="text-red-500">*</span>
+            </label>
+            <input
+              name="campaignName"
+              value={formData.campaignName}
+              onChange={handleChange}
+              required
+              placeholder="e.g. Summer 2025 Launch"
+              className="w-full border border-gray-300 rounded px-5 py-3 text-lg focus:ring-2 focus:ring-red-300 outline-none text-gray-900"
+            />
+          </div>
+
           {/* Niche */}
           <div>
             <label className="block mb-1 font-medium text-gray-700">
@@ -144,7 +156,7 @@ export default function RequestForm() {
             </select>
           </div>
 
-          {/* Min/Max Followers */}
+          {/* Min Followers */}
           <div>
             <label className="block mb-1 font-medium text-gray-700">
               Min Followers
@@ -158,6 +170,7 @@ export default function RequestForm() {
             />
           </div>
 
+          {/* Max Followers */}
           <div>
             <label className="block mb-1 font-medium text-gray-700">
               Max Followers
@@ -171,7 +184,7 @@ export default function RequestForm() {
             />
           </div>
 
-          {/* Min/Max Views */}
+          {/* Min Avg Views */}
           <div>
             <label className="block mb-1 font-medium text-gray-700">
               Min Avg Views
@@ -185,6 +198,7 @@ export default function RequestForm() {
             />
           </div>
 
+          {/* Max Avg Views */}
           <div>
             <label className="block mb-1 font-medium text-gray-700">
               Max Avg Views
@@ -198,7 +212,7 @@ export default function RequestForm() {
             />
           </div>
 
-          {/* Gender & Race */}
+          {/* Gender */}
           <div>
             <label className="block mb-1 font-medium text-gray-700">
               Gender
@@ -212,6 +226,7 @@ export default function RequestForm() {
             />
           </div>
 
+          {/* Race */}
           <div>
             <label className="block mb-1 font-medium text-gray-700">
               Race

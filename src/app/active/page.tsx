@@ -19,7 +19,7 @@ export default function ActiveRequestsPage() {
         .from("requests")
         .select("*")
         .eq("user_id", session.user.id)
-        .eq("status", "active") // now we just rely on DB status
+        .eq("status", "active") // rely on DB status
         .order("created_at", { ascending: false });
 
       if (error) {
@@ -63,6 +63,7 @@ export default function ActiveRequestsPage() {
           <thead className="bg-gray-100 text-gray-900">
             <tr>
               <th className="py-3 px-4 font-semibold">#</th>
+              <th className="py-3 px-4 font-semibold">Campaign Name</th>
               <th className="py-3 px-4 font-semibold">Niche</th>
               <th className="py-3 px-4 font-semibold">Platform</th>
               <th className="py-3 px-4 font-semibold">Budget</th>
@@ -74,6 +75,7 @@ export default function ActiveRequestsPage() {
             {requests.map((req, index) => (
               <tr key={req.id} className="border-t hover:bg-gray-50">
                 <td className="py-3 px-4">{index + 1}</td>
+                <td className="py-3 px-4">{req.campaign_name || "-"}</td>
                 <td className="py-3 px-4">{req.niche}</td>
                 <td className="py-3 px-4">{req.platform}</td>
                 <td className="py-3 px-4">${req.budget || "-"}</td>
@@ -87,7 +89,7 @@ export default function ActiveRequestsPage() {
             ))}
             {requests.length === 0 && (
               <tr>
-                <td colSpan={6} className="text-center py-6 text-gray-900 font-medium">
+                <td colSpan={7} className="text-center py-6 text-gray-900 font-medium">
                   No active requests found.
                 </td>
               </tr>

@@ -39,6 +39,7 @@ export default function CompletedRequestsPage() {
           <thead className="bg-gray-100 text-gray-900">
             <tr>
               <th className="py-3 px-4 font-semibold">#</th>
+              <th className="py-3 px-4 font-semibold">Campaign Name</th>
               <th className="py-3 px-4 font-semibold">Niche</th>
               <th className="py-3 px-4 font-semibold">Platform</th>
               <th className="py-3 px-4 font-semibold">Budget</th>
@@ -49,6 +50,7 @@ export default function CompletedRequestsPage() {
             {requests.map((req, index) => (
               <tr key={req.id} className="border-t hover:bg-gray-50">
                 <td className="py-3 px-4">{index + 1}</td>
+                <td className="py-3 px-4">{req.campaign_name || "-"}</td>
                 <td className="py-3 px-4">{req.niche}</td>
                 <td className="py-3 px-4">{req.platform}</td>
                 <td className="py-3 px-4">${req.budget || "-"}</td>
@@ -59,7 +61,7 @@ export default function CompletedRequestsPage() {
             ))}
             {requests.length === 0 && (
               <tr>
-                <td colSpan={5} className="text-center py-6 text-gray-900 font-medium">
+                <td colSpan={6} className="text-center py-6 text-gray-900 font-medium">
                   No completed requests found.
                 </td>
               </tr>

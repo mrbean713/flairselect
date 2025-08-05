@@ -98,38 +98,40 @@ export default function DashboardPage() {
           </p>
         </section>
 
+        
         {/* Stats Overview (Clickable) */}
         <section className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-          <button
+        <button
             onClick={() => router.push("/active")}
-            className="bg-white p-6 rounded-xl shadow-lg border border-gray-200 text-left hover:shadow-xl transition"
-          >
+            className="bg-white p-6 rounded-xl shadow-lg border border-gray-200 text-left transform transition-all duration-200 hover:scale-105 hover:shadow-2xl hover:border-red-400"
+        >
             <div className="flex items-center justify-between">
-              <div>
+            <div>
                 <p className="text-sm font-medium text-gray-600">Active Campaigns</p>
                 <p className="text-2xl font-bold text-gray-900">{activeCampaigns}</p>
-              </div>
-              <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
-                <FaCheckCircle className="text-green-600 text-xl" />
-              </div>
             </div>
-          </button>
+            <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
+                <FaCheckCircle className="text-green-600 text-xl" />
+            </div>
+            </div>
+        </button>
 
-          <button
+        <button
             onClick={() => router.push("/completed")}
-            className="bg-white p-6 rounded-xl shadow-lg border border-gray-200 text-left hover:shadow-xl transition"
-          >
+            className="bg-white p-6 rounded-xl shadow-lg border border-gray-200 text-left transform transition-all duration-200 hover:scale-105 hover:shadow-2xl hover:border-red-400"
+        >
             <div className="flex items-center justify-between">
-              <div>
+            <div>
                 <p className="text-sm font-medium text-gray-600">Completed Requests</p>
                 <p className="text-2xl font-bold text-gray-900">{totalRequests}</p>
-              </div>
-              <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
-                <FaRocket className="text-blue-600 text-xl" />
-              </div>
             </div>
-          </button>
+            <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
+                <FaRocket className="text-blue-600 text-xl" />
+            </div>
+            </div>
+        </button>
         </section>
+
 
         {/* New Campaign CTA */}
         <section className="bg-red-600 p-8 rounded-2xl text-center">
