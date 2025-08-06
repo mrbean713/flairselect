@@ -108,7 +108,15 @@ export default function Forms() {
   };
 
   return (
-    <main className="min-h-screen bg-gray-50 flex items-center justify-center px-6 py-24">
+    <main className="min-h-screen bg-gray-50 flex items-center justify-center px-6 py-24 relative">
+      {/* Sticky Back to Home Button */}
+      <button
+        onClick={() => router.push("/")}
+        className="fixed top-6 left-6 bg-gray-100 text-gray-700 px-4 py-2 rounded-lg font-medium hover:bg-gray-200 transition-colors shadow"
+      >
+        ← Back to Home
+      </button>
+
       <div className="bg-white rounded-2xl shadow-xl p-14 w-full max-w-xl relative">
         {confirmationMessage && (
           <div className="mb-6 px-4 py-3 rounded text-green-800 bg-green-100 border border-green-300 text-center font-medium text-sm">
@@ -228,35 +236,35 @@ export default function Forms() {
 
         {/* Forgot Password Modal */}
         {forgotPasswordOpen && (
-  <div className="fixed inset-0 flex items-center justify-center z-50 bg-white">
-    <div className="bg-white rounded-xl p-6 w-full max-w-sm shadow-xl border border-gray-200">
-      <h2 className="text-xl font-semibold mb-4 text-center text-gray-900">
-        Reset Your Password
-      </h2>
-      <input
-        type="email"
-        placeholder="Enter your email"
-        value={resetEmail}
-        onChange={(e) => setResetEmail(e.target.value)}
-        className="w-full mb-4 px-4 py-3 border border-gray-300 rounded text-gray-900"
-      />
-      <div className="flex justify-between gap-2">
-        <button
-          onClick={() => setForgotPasswordOpen(false)}
-          className="w-1/2 py-2 rounded bg-gray-100 text-gray-700 hover:bg-gray-200 font-medium"
-        >
-          Cancel
-        </button>
-        <button
-          onClick={handlePasswordReset}
-          className="w-1/2 py-2 rounded bg-red-600 text-white hover:bg-red-700 font-medium"
-        >
-          Send Reset
-        </button>
-      </div>
-    </div>
-  </div>
-)}
+          <div className="fixed inset-0 flex items-center justify-center z-50 bg-white">
+            <div className="bg-white rounded-xl p-6 w-full max-w-sm shadow-xl border border-gray-200">
+              <h2 className="text-xl font-semibold mb-4 text-center text-gray-900">
+                Reset Your Password
+              </h2>
+              <input
+                type="email"
+                placeholder="Enter your email"
+                value={resetEmail}
+                onChange={(e) => setResetEmail(e.target.value)}
+                className="w-full mb-4 px-4 py-3 border border-gray-300 rounded text-gray-900"
+              />
+              <div className="flex justify-between gap-2">
+                <button
+                  onClick={() => setForgotPasswordOpen(false)}
+                  className="w-1/2 py-2 rounded bg-gray-100 text-gray-700 hover:bg-gray-200 font-medium"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handlePasswordReset}
+                  className="w-1/2 py-2 rounded bg-red-600 text-white hover:bg-red-700 font-medium"
+                >
+                  Send Reset
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </main>
   );

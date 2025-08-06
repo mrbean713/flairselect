@@ -1,12 +1,12 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation"; // ✅ Import router for navigation
+import { useRouter } from "next/navigation";
 import { createClientComponentClient } from "@supabase/auth-helpers-nextjs";
 
 export default function RequestForm() {
   const supabase = createClientComponentClient();
-  const router = useRouter(); // ✅ Initialize router
+  const router = useRouter();
 
   const [formData, setFormData] = useState({
     campaignName: "",
@@ -73,7 +73,6 @@ export default function RequestForm() {
 
       if (error) throw error;
 
-      // ✅ Redirect to dashboard after success
       router.push("/dashboard");
 
     } catch (err: any) {
@@ -83,20 +82,23 @@ export default function RequestForm() {
     }
   };
 
+  const inputClass =
+    "w-full border border-gray-300 rounded px-3 py-2 text-base focus:ring-2 focus:ring-red-300 outline-none text-gray-900";
+
   return (
-    <main className="min-h-screen bg-gray-50 flex items-center justify-center px-6 py-24">
+    <main className="min-h-screen bg-gray-50 flex items-center justify-center px-4 py-12">
       <form
         onSubmit={handleSubmit}
-        className="bg-white rounded-2xl shadow-xl p-10 w-full max-w-2xl space-y-6 border border-gray-200"
+        className="bg-white rounded-2xl shadow-xl p-6 w-full max-w-xl space-y-5 border border-gray-200"
       >
-        <h2 className="text-2xl font-bold text-gray-900 text-center">
+        <h2 className="text-xl font-bold text-gray-900 text-center">
           Request Influencer Campaign
         </h2>
 
         {successMessage && <p className="text-green-600 text-center">{successMessage}</p>}
         {errorMessage && <p className="text-red-600 text-center">{errorMessage}</p>}
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {/* Campaign Name */}
           <div className="md:col-span-2">
             <label className="block mb-1 font-medium text-gray-700">
@@ -108,7 +110,7 @@ export default function RequestForm() {
               onChange={handleChange}
               required
               placeholder="e.g. Summer 2025 Launch"
-              className="w-full border border-gray-300 rounded px-5 py-3 text-lg focus:ring-2 focus:ring-red-300 outline-none text-gray-900"
+              className={inputClass}
             />
           </div>
 
@@ -123,7 +125,7 @@ export default function RequestForm() {
               onChange={handleChange}
               required
               placeholder="e.g. Fashion, Tech, Beauty"
-              className="w-full border border-gray-300 rounded px-5 py-3 text-lg focus:ring-2 focus:ring-red-300 outline-none text-gray-900"
+              className={inputClass}
             />
           </div>
 
@@ -137,7 +139,7 @@ export default function RequestForm() {
               value={formData.platform}
               onChange={handleChange}
               required
-              className="w-full border border-gray-300 rounded px-5 py-3 text-lg focus:ring-2 focus:ring-red-300 outline-none text-gray-900"
+              className={inputClass}
             >
               <option value="instagram">Instagram</option>
               <option value="tiktok">TikTok</option>
@@ -146,136 +148,116 @@ export default function RequestForm() {
 
           {/* Min Followers */}
           <div>
-            <label className="block mb-1 font-medium text-gray-700">
-              Min Followers
-            </label>
+            <label className="block mb-1 font-medium text-gray-700">Min Followers</label>
             <input
               name="minFollowers"
               type="number"
               value={formData.minFollowers}
               onChange={handleChange}
-              className="w-full border border-gray-300 rounded px-5 py-3 text-lg focus:ring-2 focus:ring-red-300 outline-none text-gray-900"
+              className={inputClass}
             />
           </div>
 
           {/* Max Followers */}
           <div>
-            <label className="block mb-1 font-medium text-gray-700">
-              Max Followers
-            </label>
+            <label className="block mb-1 font-medium text-gray-700">Max Followers</label>
             <input
               name="maxFollowers"
               type="number"
               value={formData.maxFollowers}
               onChange={handleChange}
-              className="w-full border border-gray-300 rounded px-5 py-3 text-lg focus:ring-2 focus:ring-red-300 outline-none text-gray-900"
+              className={inputClass}
             />
           </div>
 
           {/* Min Avg Views */}
           <div>
-            <label className="block mb-1 font-medium text-gray-700">
-              Min Avg Views
-            </label>
+            <label className="block mb-1 font-medium text-gray-700">Min Avg Views</label>
             <input
               name="minViews"
               type="number"
               value={formData.minViews}
               onChange={handleChange}
-              className="w-full border border-gray-300 rounded px-5 py-3 text-lg focus:ring-2 focus:ring-red-300 outline-none text-gray-900"
+              className={inputClass}
             />
           </div>
 
           {/* Max Avg Views */}
           <div>
-            <label className="block mb-1 font-medium text-gray-700">
-              Max Avg Views
-            </label>
+            <label className="block mb-1 font-medium text-gray-700">Max Avg Views</label>
             <input
               name="maxViews"
               type="number"
               value={formData.maxViews}
               onChange={handleChange}
-              className="w-full border border-gray-300 rounded px-5 py-3 text-lg focus:ring-2 focus:ring-red-300 outline-none text-gray-900"
+              className={inputClass}
             />
           </div>
 
           {/* Gender */}
           <div>
-            <label className="block mb-1 font-medium text-gray-700">
-              Gender
-            </label>
+            <label className="block mb-1 font-medium text-gray-700">Gender</label>
             <input
               name="gender"
               value={formData.gender}
               onChange={handleChange}
               placeholder="e.g. Female, Male, Any"
-              className="w-full border border-gray-300 rounded px-5 py-3 text-lg focus:ring-2 focus:ring-red-300 outline-none text-gray-900"
+              className={inputClass}
             />
           </div>
 
           {/* Race */}
           <div>
-            <label className="block mb-1 font-medium text-gray-700">
-              Race
-            </label>
+            <label className="block mb-1 font-medium text-gray-700">Race</label>
             <input
               name="race"
               value={formData.race}
               onChange={handleChange}
               placeholder="e.g. Asian, Black, Hispanic, Any"
-              className="w-full border border-gray-300 rounded px-5 py-3 text-lg focus:ring-2 focus:ring-red-300 outline-none text-gray-900"
+              className={inputClass}
             />
           </div>
 
           {/* Location */}
           <div>
-            <label className="block mb-1 font-medium text-gray-700">
-              Location
-            </label>
+            <label className="block mb-1 font-medium text-gray-700">Location</label>
             <input
               name="location"
               value={formData.location}
               onChange={handleChange}
               placeholder="e.g. Los Angeles, USA"
-              className="w-full border border-gray-300 rounded px-5 py-3 text-lg focus:ring-2 focus:ring-red-300 outline-none text-gray-900"
+              className={inputClass}
             />
           </div>
 
           {/* Language */}
           <div>
-            <label className="block mb-1 font-medium text-gray-700">
-              Language
-            </label>
+            <label className="block mb-1 font-medium text-gray-700">Language</label>
             <input
               name="language"
               value={formData.language}
               onChange={handleChange}
               placeholder="e.g. English, Spanish"
-              className="w-full border border-gray-300 rounded px-5 py-3 text-lg focus:ring-2 focus:ring-red-300 outline-none text-gray-900"
+              className={inputClass}
             />
           </div>
 
           {/* Budget */}
           <div>
-            <label className="block mb-1 font-medium text-gray-700">
-              Budget ($)
-            </label>
+            <label className="block mb-1 font-medium text-gray-700">Budget ($)</label>
             <input
               name="budget"
               type="number"
               value={formData.budget}
               onChange={handleChange}
               placeholder="e.g. 1000"
-              className="w-full border border-gray-300 rounded px-5 py-3 text-lg focus:ring-2 focus:ring-red-300 outline-none text-gray-900"
+              className={inputClass}
             />
           </div>
 
           {/* Engagement Rate */}
           <div>
-            <label className="block mb-1 font-medium text-gray-700">
-              Engagement Rate (%)
-            </label>
+            <label className="block mb-1 font-medium text-gray-700">Engagement Rate (%)</label>
             <input
               name="engagementRate"
               type="number"
@@ -283,22 +265,20 @@ export default function RequestForm() {
               value={formData.engagementRate}
               onChange={handleChange}
               placeholder="e.g. 5.2"
-              className="w-full border border-gray-300 rounded px-5 py-3 text-lg focus:ring-2 focus:ring-red-300 outline-none text-gray-900"
+              className={inputClass}
             />
           </div>
         </div>
 
         {/* Notes */}
         <div>
-          <label className="block mb-1 font-medium text-gray-700">
-            Additional Notes
-          </label>
+          <label className="block mb-1 font-medium text-gray-700">Additional Notes</label>
           <textarea
             name="notes"
             value={formData.notes}
             onChange={handleChange}
-            rows={4}
-            className="w-full border border-gray-300 rounded px-5 py-3 text-lg focus:ring-2 focus:ring-red-300 outline-none text-gray-900 resize-none"
+            rows={3}
+            className={`${inputClass} resize-none`}
             placeholder="Include anything else we should know..."
           ></textarea>
         </div>
@@ -307,7 +287,7 @@ export default function RequestForm() {
         <button
           type="submit"
           disabled={loading}
-          className="w-full bg-red-600 text-white font-bold py-4 text-lg rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50"
+          className="w-full bg-red-600 text-white font-bold py-3 text-base rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50"
         >
           {loading ? "Submitting..." : "Submit Request"}
         </button>
