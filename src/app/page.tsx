@@ -89,11 +89,11 @@ export default function Home() {
                   Welcome to
                 </h2>
                 <h1 className="text-7xl sm:text-8xl lg:text-9xl font-black mb-8 leading-none tracking-tight">
-                  FLAIR<br />
-                  <span className="text-red-600">Select</span>
+  <span className="text-red-600">FLAIR</span><br />
+                  <span className="text-gray-900">Select</span>
                 </h1>
                 <p className="text-xl text-gray-700 max-w-xl leading-relaxed mb-12">
-                  The fastest, most precise influencer sourcing engine in the world. <br />
+                  The most precise influencer sourcing engine in the world. <br />
                   We deliver creators for <span className="font-semibold text-gray-900">any niche, any criteria</span> — no matter how specific.
                   <br /><br />
                   Built with proprietary tools. Trusted by the best. Better than agencies.
@@ -159,7 +159,7 @@ export default function Home() {
                     <div className="space-y-3">
                       {[
                         "Submit your criteria",
-                        "Receive influencers within 24 hours",
+                        "Receive influencers within 48 hours",
                         "Get put in contact with desired creators",
                         "Launch your campaign",
                       ].map((text, i) => (

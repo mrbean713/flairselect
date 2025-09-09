@@ -209,7 +209,7 @@ export default function Forms() {
                   onChange={handleChange}
                   required
                   className="w-full border border-gray-300 rounded px-5 py-3 text-lg focus:ring-2 focus:ring-red-300 outline-none text-gray-900"
-                  placeholder="e.g. Flair Marketing Co."
+                  placeholder="e.g. The FLAIR Collective"
                 />
               </div>
             </>
