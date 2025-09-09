@@ -1,30 +1,36 @@
-import { createMiddlewareClient } from '@supabase/auth-helpers-nextjs';
-import { NextResponse } from 'next/server';
-import type { NextRequest } from 'next/server';
+import { createMiddlewareClient } from "@supabase/auth-helpers-nextjs";
+import { NextResponse } from "next/server";
+import type { NextRequest } from "next/server";
 
 export async function middleware(req: NextRequest) {
-  console.log("🛡️ Running middleware");
-
   const res = NextResponse.next();
   const supabase = createMiddlewareClient({ req, res });
-
   const {
     data: { session },
   } = await supabase.auth.getSession();
 
-  const isProtectedRoute = req.nextUrl.pathname.startsWith('/dashboard');
+  // Only gate these paths; do NOT include /auth/*
+  const protectedPaths = ["/dashboard", "/onboarding"];
+  const isProtected = protectedPaths.some((p) =>
+    req.nextUrl.pathname.startsWith(p)
+  );
 
-  if (isProtectedRoute && !session) {
-    const redirectUrl = req.nextUrl.clone();
-    redirectUrl.pathname = '/forms';
-    redirectUrl.searchParams.set('mode', 'login');
-    return NextResponse.redirect(redirectUrl);
+  if (!session && isProtected) {
+    const url = req.nextUrl.clone();
+    url.pathname = "/forms";
+    // Preserve where they were going so we can send them back after login
+    url.searchParams.set("mode", "login");
+    url.searchParams.set(
+      "next",
+      req.nextUrl.pathname + (req.nextUrl.search || "")
+    );
+    return NextResponse.redirect(url);
   }
 
   return res;
 }
 
-// ✅ Only run middleware on dashboard routes
+// Run only on protected pages
 export const config = {
-  matcher: ['/dashboard/:path*', '/dashboard'],
+  matcher: ["/dashboard/:path*", "/onboarding/:path*"],
 };

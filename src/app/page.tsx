@@ -46,37 +46,48 @@ export default function Home() {
   return (
     <main className="min-h-screen bg-gray-50 text-gray-900">
       {/* Header */}
-      <header className="border-b border-gray-200 bg-white/80 backdrop-blur-sm sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
-          <div className="text-2xl font-bold text-red-600">FLAIR</div>
-          {session?.user ? (
-            <div className="flex items-center gap-4">
-              <span className="text-gray-600 font-medium">
-                Welcome, {companyName || "Company"}
-              </span>
-              <button
-                onClick={handleLogout}
-                className="bg-red-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-red-700 transition-colors"
-              >
-                Logout
-              </button>
-            </div>
-          ) : (
-            <div className="flex items-center gap-6">
-              <Link href="/forms?mode=login">
-                <button className="text-gray-600 hover:text-gray-900 transition-colors font-medium">
-                  Login
-                </button>
-              </Link>
-              <Link href="/forms?mode=signup">
-                <button className="bg-red-600 text-white px-6 py-2 rounded-lg font-medium hover:bg-red-700 transition-colors">
-                  Sign Up
-                </button>
-              </Link>
-            </div>
-          )}
+        <header className="border-b border-gray-200 bg-white/80 backdrop-blur-sm sticky top-0 z-50">
+    <div className="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
+      <div className="text-2xl font-bold text-red-600">FLAIR</div>
+      {session?.user ? (
+        <div className="flex items-center gap-4">
+          <Link href="/pricing">
+            <button className="bg-red-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-red-700 transition-colors">
+              Pricing
+            </button>
+          </Link>
+          <span className="text-gray-600 font-medium">
+            Welcome, {companyName || "Company"}
+          </span>
+          <button
+            onClick={handleLogout}
+            className="bg-gray-900 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-gray-800 transition-colors"
+          >
+            Logout
+          </button>
         </div>
-      </header>
+      ) : (
+        <div className="flex items-center gap-6">
+          <Link href="/pricing">
+            <button className="bg-red-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-red-700 transition-colors">
+              Pricing
+            </button>
+          </Link>
+          <Link href="/forms?mode=login">
+            <button className="text-gray-600 hover:text-gray-900 transition-colors font-medium">
+              Login
+            </button>
+          </Link>
+          <Link href="/forms?mode=signup">
+            <button className="bg-red-600 text-white px-6 py-2 rounded-lg font-medium hover:bg-red-700 transition-colors">
+              Sign Up
+            </button>
+          </Link>
+        </div>
+      )}
+    </div>
+  </header>
+
 
       {/* Hero Section */}
       <section className="pt-20 pb-16 px-6">

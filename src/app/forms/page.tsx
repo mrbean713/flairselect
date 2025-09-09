@@ -3,9 +3,10 @@
 import { useEffect, useState } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { FaGoogle } from "react-icons/fa";
-import { supabase } from "@/lib/supabaseClient";
+import { createClientComponentClient } from "@supabase/auth-helpers-nextjs";
 
 export default function Forms() {
+  const supabase = createClientComponentClient(); // ✅ helpers client
   const searchParams = useSearchParams();
   const router = useRouter();
   const mode = searchParams.get("mode") || "login";
@@ -34,6 +35,9 @@ export default function Forms() {
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
+    // ✅ preserve intended destination
+    const next = searchParams.get("next") || (isLogin ? "/dashboard" : "/onboarding");
+
     if (isLogin) {
       const { error } = await supabase.auth.signInWithPassword({
         email: formData.email,
@@ -45,7 +49,7 @@ export default function Forms() {
         return;
       }
 
-      router.push("/dashboard");
+      router.push(next); // 🔁 go where the user intended
     } else {
       const { data, error } = await supabase.auth.signUp({
         email: formData.email,
@@ -77,10 +81,10 @@ export default function Forms() {
   };
 
   const handleGoogleSignIn = async () => {
-    const redirectTo =
-      mode === "signup"
-        ? "https://flairselect.vercel.app/auth/callback?from=onboarding"
-        : "https://flairselect.vercel.app/auth/callback?from=dashboard";
+    const origin = window.location.origin; // ← localhost or vercel, automatically
+    // ✅ preserve intended destination
+    const next = searchParams.get("next") || (isLogin ? "/dashboard" : "/onboarding");
+    const redirectTo = `${origin}/auth/callback?next=${encodeURIComponent(next)}`;
 
     const { error } = await supabase.auth.signInWithOAuth({
       provider: "google",

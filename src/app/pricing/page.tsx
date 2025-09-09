@@ -154,9 +154,12 @@ export default function PricingPage() {
         {/* Optional fine print */}
         <p className="text-center text-sm text-gray-500 mt-6">
           Need something different?{" "}
-          <Link href="/contact" className="text-gray-700 underline hover:no-underline">
+          <a
+            href="mailto:sam@theflaircollective.com?cc=nick@theflaircollective.com"
+            className="text-gray-700 underline hover:no-underline"
+          >
             Get in touch
-          </Link>
+          </a>
           .
         </p>
       </div>
