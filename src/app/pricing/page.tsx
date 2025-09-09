@@ -1,497 +1,167 @@
-// RequestForm.tsx
+// app/pricing/page.tsx
 "use client";
 
-import { useState } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
-import { createClientComponentClient } from "@supabase/auth-helpers-nextjs";
-import { loadStripe } from "@stripe/stripe-js";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { FiCheck } from "react-icons/fi";
 
-const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!);
-
-export default function RequestForm() {
-  const supabase = createClientComponentClient();
+export default function PricingPage() {
   const router = useRouter();
-  const searchParams = useSearchParams();
 
-  const initialTier =
-    (searchParams.get("tier") as
-      | "list_only"
-      | "list_plus_dm"
-      | "integration_setup"
-      | "integration_subscription") || "list_only";
+  const featuresListOnly = [
+    "Curated creator list",
+    "Instagram, TikTok, LinkedIn",
+    "Vetted creators only",
+    "Delivered in 24–48 hours",
+  ];
 
-  const [formData, setFormData] = useState({
-    campaignName: "",
-    niche: "",
-    platform: "instagram",
-    minFollowers: "",
-    maxFollowers: "",
-    minViews: "",
-    maxViews: "",
-    gender: "",
-    race: "",
-    location: "",
-    language: "",
-    budget: "",
-    engagementRate: "",
-    notes: "",
-  });
+  const featuresListPlusDM = [
+    "Everything in List tier",
+    "We handle DM outreach",
+    "Personalized first messages",
+    "Response tracking & sheet",
+    "Status updates via email",
+    "Final List of Committed Creators"
+  ];
 
-  const [loading, setLoading] = useState(false);
-  const [errorMessage, setErrorMessage] = useState("");
-
-  // NEW: PDF brief state
-  const [pdfFile, setPdfFile] = useState<File | null>(null);
-  const [isDragging, setIsDragging] = useState(false);
-  const [uploading, setUploading] = useState(false);
-
-  const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
-  ) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
-  };
-
-  // Handle file select (input) + drag/drop
-  const onFileSelected = (file: File) => {
-    if (!file) return;
-    if (file.type !== "application/pdf") {
-      setErrorMessage("Please upload a PDF file.");
-      return;
-    }
-    setErrorMessage("");
-    setPdfFile(file);
-  };
-
-  const onDrop = (e: React.DragEvent<HTMLDivElement>) => {
-    e.preventDefault();
-    setIsDragging(false);
-    const file = e.dataTransfer.files?.[0];
-    if (file) onFileSelected(file);
-  };
-
-  const onDragOver = (e: React.DragEvent<HTMLDivElement>) => {
-    e.preventDefault();
-    setIsDragging(true);
-  };
-
-  const onDragLeave = (e: React.DragEvent<HTMLDivElement>) => {
-    e.preventDefault();
-    setIsDragging(false);
-  };
-
-  // Upload PDF to Storage, return the storage PATH
-  const uploadPdfAndGetPath = async (): Promise<string | null> => {
-    if (!pdfFile) return null;
-
-    setUploading(true);
-    try {
-      const {
-        data: { user },
-        error: userError,
-      } = await supabase.auth.getUser();
-      if (userError) throw userError;
-      if (!user) throw new Error("You must be logged in to upload a brief.");
-
-      const filePath = `${user.id}/${Date.now()}-${pdfFile.name}`;
-
-      const { error: uploadErr } = await supabase.storage
-        .from("requests-briefs")
-        .upload(filePath, pdfFile, {
-          cacheControl: "3600",
-          upsert: false,
-          contentType: "application/pdf",
-        });
-      if (uploadErr) throw uploadErr;
-
-      return filePath;
-    } finally {
-      setUploading(false);
-    }
-  };
-
-  // Start Stripe Checkout instead of inserting here
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    setLoading(true);
-    setErrorMessage("");
-
-    try {
-      const {
-        data: { user },
-        error: userError,
-      } = await supabase.auth.getUser();
-      if (userError) throw userError;
-      if (!user) throw new Error("You must be logged in to submit a request.");
-
-      // If a PDF is present, upload first and capture storage path
-      let briefPath: string | null = null;
-      if (pdfFile) {
-        briefPath = await uploadPdfAndGetPath();
-      }
-
-      const res = await fetch("/api/create-checkout-session", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          userId: user.id,
-          tier: initialTier, // <- from pricing page
-          form: {
-            campaignName: formData.campaignName || null,
-            niche: formData.niche || null,
-            platform: formData.platform || null,
-            minFollowers: formData.minFollowers || null,
-            maxFollowers: formData.maxFollowers || null,
-            minViews: formData.minViews || null,
-            maxViews: formData.maxViews || null,
-            gender: formData.gender || null,
-            race: formData.race || null,
-            location: formData.location || null,
-            language: formData.language || null,
-            budget: formData.budget || null,
-            engagementRate: formData.engagementRate || null,
-            notes: formData.notes || null,
-            briefPath,
-          },
-        }),
-      });
-
-      if (!res.ok) {
-        const j = await res.json().catch(() => ({}));
-        throw new Error(j.error || "Failed to start checkout.");
-      }
-
-      const { sessionId } = await res.json();
-      const stripe = await stripePromise;
-      if (!stripe) throw new Error("Stripe failed to load.");
-      await stripe.redirectToCheckout({ sessionId });
-    } catch (err: any) {
-      setErrorMessage(err.message || "Something went wrong.");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // PDF-only quick submit → same flow with tier from URL
-  const handlePdfOnlySubmit = async () => {
-    setLoading(true);
-    setErrorMessage("");
-
-    try {
-      const {
-        data: { user },
-        error: userError,
-      } = await supabase.auth.getUser();
-      if (userError) throw userError;
-      if (!user) throw new Error("You must be logged in to submit a request.");
-      if (!pdfFile) throw new Error("Please attach a PDF brief first.");
-
-      const briefPath = await uploadPdfAndGetPath();
-      if (!briefPath) throw new Error("Failed to upload brief.");
-
-      const fallbackName = pdfFile.name.replace(/\.pdf$/i, "");
-
-      const res = await fetch("/api/create-checkout-session", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          userId: user.id,
-          tier: initialTier, // <- from pricing page
-          form: {
-            campaignName: formData.campaignName || fallbackName,
-            niche: formData.niche || null,
-            platform: formData.platform || null,
-            briefPath,
-          },
-        }),
-      });
-
-      if (!res.ok) {
-        const j = await res.json().catch(() => ({}));
-        throw new Error(j.error || "Failed to start checkout.");
-      }
-
-      const { sessionId } = await res.json();
-      const stripe = await stripePromise;
-      if (!stripe) throw new Error("Stripe failed to load.");
-      await stripe.redirectToCheckout({ sessionId });
-    } catch (err: any) {
-      setErrorMessage(err.message || "Something went wrong.");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const inputClass =
-    "w-full border border-gray-300 rounded px-3 py-2 text-base focus:ring-2 focus:ring-red-300 outline-none text-gray-900";
+  const featuresIntegration = [
+    "Everything in List tier",
+    "Personalized first messages",
+    "Full IG integration (outreach from your brand account)",
+    "Includes 5 lists per month",
+  ];
 
   return (
-    <main className="min-h-screen bg-gray-50 flex items-center justify-center px-4 py-12">
-      <form
-        onSubmit={handleSubmit}
-        className="bg-white rounded-2xl shadow-xl p-6 w-full max-w-xl space-y-5 border border-gray-200"
-      >
-        <h2 className="text-xl font-bold text-gray-900 text-center">
-          Request Influencer Campaign
-        </h2>
+    <main className="min-h-screen bg-gray-50 flex items-center justify-center px-6 py-24">
+      <div className="w-full max-w-6xl">
+        <h1 className="text-3xl font-bold text-gray-900 text-center mb-10">
+          Pricing
+        </h1>
 
-        {errorMessage && <p className="text-red-600 text-center">{errorMessage}</p>}
-
-        {/* NEW: Drag-and-drop PDF brief */}
-        <div className="space-y-2">
-          <label className="block font-medium text-gray-700">
-            Upload Campaign Brief (PDF)
-          </label>
-
-          <div
-            onDrop={onDrop}
-            onDragOver={onDragOver}
-            onDragLeave={onDragLeave}
-            className={`flex flex-col items-center justify-center gap-2 border-2 border-dashed rounded-lg p-6 text-center transition
-              ${isDragging ? "border-red-400 bg-red-50" : "border-gray-300 bg-gray-50"}`}
-          >
-            <p className="text-sm text-gray-700">
-              Drag & drop your PDF here, or click to select.
-            </p>
-            <input
-              type="file"
-              accept="application/pdf"
-              onChange={(e) => {
-                const f = e.target.files?.[0];
-                if (f) onFileSelected(f);
-              }}
-              className="hidden"
-              id="briefInput"
-            />
-            <label
-              htmlFor="briefInput"
-              className="cursor-pointer inline-block bg-red-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-red-700 transition"
-            >
-              {pdfFile ? "Change PDF" : "Choose PDF"}
-            </label>
-
-            {pdfFile && (
-              <div className="text-xs text-gray-600 mt-1">
-                Selected: <span className="font-medium">{pdfFile.name}</span>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          {/* $250 – List Only */}
+          <div className="bg-white rounded-2xl shadow-xl border border-gray-200 p-8 md:p-10 flex flex-col">
+            <div className="mb-6">
+              <p className="text-gray-900 font-semibold text-lg">Influencer List</p>
+              <div className="mt-2 flex items-baseline gap-2">
+                <span className="text-4xl md:text-5xl font-bold text-gray-900">$250</span>
+                <span className="text-gray-600 text-lg">/ list</span>
               </div>
-            )}
-            {uploading && (
-              <div className="text-xs text-gray-500 mt-1">Uploading…</div>
-            )}
+            </div>
+
+            <ul className="space-y-3 mb-8 text-gray-800">
+              {featuresListOnly.map((f) => (
+                <li key={f} className="flex items-start gap-3">
+                  <FiCheck className="mt-1 shrink-0" />
+                  <span>{f}</span>
+                </li>
+              ))}
+            </ul>
+
+            <div className="mt-auto">
+              <p className="text-sm text-gray-600 mb-4">
+                Submit campaign info, attach your brief, and receive your list of creators.
+              </p>
+
+              <button
+                onClick={() => router.push("/request?tier=list_only")}
+                className="w-full bg-red-600 text-white font-bold py-4 text-lg rounded-lg hover:bg-red-700 transition-colors"
+              >
+                Submit Request
+              </button>
+            </div>
           </div>
 
-          {/* Optional: quick submit with PDF only */}
-          <button
-            type="button"
-            onClick={handlePdfOnlySubmit}
-            disabled={loading || !pdfFile}
-            className="w-full bg-gray-900 text-white font-semibold py-2 rounded-lg hover:bg-gray-800 transition-colors disabled:opacity-50"
+          {/* $1,000 – List + DM Outreach (Most Popular) */}
+          <div className="relative bg-white rounded-2xl shadow-xl border-2 border-red-600 p-8 md:p-10 flex flex-col">
+            <span className="absolute -top-3 left-1/2 -translate-x-1/2 bg-red-600 text-white text-xs font-bold px-3 py-1 rounded-full shadow">
+              Most Popular
+            </span>
+
+            <div className="mb-6">
+              <p className="text-gray-900 font-semibold text-lg">List + DM Outreach</p>
+              <div className="mt-2 flex items-baseline gap-2">
+                <span className="text-4xl md:text-5xl font-bold text-gray-900">$1,000</span>
+                <span className="text-gray-600 text-lg">/ list + outreach</span>
+              </div>
+            </div>
+
+            <ul className="space-y-3 mb-8 text-gray-800">
+              {featuresListPlusDM.map((f) => (
+                <li key={f} className="flex items-start gap-3">
+                  <FiCheck className="mt-1 shrink-0" />
+                  <span>{f}</span>
+                </li>
+              ))}
+            </ul>
+
+            <div className="mt-auto">
+              <p className="text-sm text-gray-600 mb-4">
+                We craft and send DMs to the curated list and facilitate campaign onboarding.
+              </p>
+
+              <button
+                onClick={() => router.push("/request?tier=list_plus_dm")}
+                className="w-full bg-red-600 text-white font-bold py-4 text-lg rounded-lg hover:bg-red-700 transition-colors"
+              >
+                Submit Request
+              </button>
+            </div>
+          </div>
+
+          {/* $2,500 install + $1,000/mo – Full Integration */}
+          <div className="bg-white rounded-2xl shadow-xl border border-gray-200 p-8 md:p-10 flex flex-col">
+            <div className="mb-6">
+              <p className="text-gray-900 font-semibold text-lg">Integrated Outreach</p>
+              <div className="mt-2">
+                <div className="flex items-baseline gap-2">
+                  <span className="text-4xl md:text-5xl font-bold text-gray-900">$2,500</span>
+                  <span className="text-gray-600 text-lg">installation</span>
+                </div>
+                <div className="flex items-baseline gap-2 mt-1">
+                  <span className="text-3xl md:text-4xl font-bold text-gray-900">$1,000</span>
+                  <span className="text-gray-600 text-base">/ month maintenance</span>
+                </div>
+              </div>
+            </div>
+
+            <ul className="space-y-3 mb-8 text-gray-800">
+              {featuresIntegration.map((f) => (
+                <li key={f} className="flex items-start gap-3">
+                  <FiCheck className="mt-1 shrink-0" />
+                  <span>{f}</span>
+                </li>
+              ))}
+            </ul>
+
+            <div className="mt-auto">
+              <p className="text-sm text-gray-600 mb-4">
+                We plug our brand into your brand’s IG backend with automated mass DM outreach and follow-ups.{" "}
+                <span className="font-semibold"></span>
+              </p>
+
+              <Link
+                href="/request?tier=integration_setup"
+                className="block w-full bg-red-600 text-white font-bold py-4 text-lg rounded-lg hover:bg-red-700 transition-colors text-center"
+              >
+                Book Integration Call
+              </Link>
+            </div>
+          </div>
+        </div>
+
+        {/* Optional fine print */}
+        <p className="text-center text-sm text-gray-500 mt-6">
+          Need something different?{" "}
+          <a
+            href="mailto:sam@theflaircollective.com?cc=nick@theflaircollective.com"
+            className="text-gray-700 underline hover:no-underline"
           >
-            Submit with PDF Only
-          </button>
-        </div>
-
-        {/* --- OR divider --- */}
-        <div className="relative my-6">
-          <div className="h-px bg-gray-200" />
-          <span className="absolute left-1/2 -translate-x-1/2 -top-3 bg-white px-3 text-xs font-semibold tracking-widest text-gray-500">
-            OR
-          </span>
-        </div>
-
-        {/* —— existing form —— */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {/* Campaign Name */}
-          <div className="md:col-span-2">
-            <label className="block mb-1 font-medium text-gray-700">
-              Campaign Name<span className="text-red-500">*</span>
-            </label>
-            <input
-              name="campaignName"
-              value={formData.campaignName}
-              onChange={handleChange}
-              placeholder="e.g. Summer 2025 Launch"
-              className={inputClass}
-            />
-          </div>
-
-          {/* Niche */}
-          <div>
-            <label className="block mb-1 font-medium text-gray-700">
-              Niche<span className="text-red-500">*</span>
-            </label>
-            <input
-              name="niche"
-              value={formData.niche}
-              onChange={handleChange}
-              placeholder="e.g. Fashion, Tech, Beauty"
-              className={inputClass}
-            />
-          </div>
-
-          {/* Platform */}
-          <div>
-            <label className="block mb-1 font-medium text-gray-700">
-              Platform<span className="text-red-500">*</span>
-            </label>
-            <select
-              name="platform"
-              value={formData.platform}
-              onChange={handleChange}
-              className={inputClass}
-            >
-              <option value="instagram">Instagram</option>
-              <option value="tiktok">TikTok</option>
-              <option value="x">X (Twitter)</option>
-              <option value="youtube">YouTube</option>
-              <option value="linkedin">LinkedIn</option>
-            </select>
-          </div>
-
-          {/* Min Followers */}
-          <div>
-            <label className="block mb-1 font-medium text-gray-700">Min Followers</label>
-            <input
-              name="minFollowers"
-              type="number"
-              value={formData.minFollowers}
-              onChange={handleChange}
-              className={inputClass}
-            />
-          </div>
-
-          {/* Max Followers */}
-          <div>
-            <label className="block mb-1 font-medium text-gray-700">
-              Max Followers
-              <span className="block text-xs font-normal text-gray-500">
-                (Leave blank if no maximum)
-              </span>
-            </label>
-            <input
-              name="maxFollowers"
-              type="number"
-              value={formData.maxFollowers}
-              onChange={handleChange}
-              className={inputClass}
-            />
-          </div>
-
-          {/* Max Avg Views */}
-          <div>
-            <label className="block mb-1 font-medium text-gray-700">
-              Max Avg Views
-              <span className="block text-xs font-normal text-gray-500">
-                (Leave blank if no maximum)
-              </span>
-            </label>
-            <input
-              name="maxViews"
-              type="number"
-              value={formData.maxViews}
-              onChange={handleChange}
-              className={inputClass}
-            />
-          </div>
-
-          {/* Gender */}
-          <div>
-            <label className="block mb-1 font-medium text-gray-700">Gender</label>
-            <input
-              name="gender"
-              value={formData.gender}
-              onChange={handleChange}
-              placeholder="e.g. Female, Male, Any"
-              className={inputClass}
-            />
-          </div>
-
-          {/* Race */}
-          <div>
-            <label className="block mb-1 font-medium text-gray-700">Race & Ethnicity</label>
-            <input
-              name="race"
-              value={formData.race}
-              onChange={handleChange}
-              placeholder="e.g. Asian, Black, Hispanic, Any"
-              className={inputClass}
-            />
-          </div>
-
-          {/* Location */}
-          <div>
-            <label className="block mb-1 font-medium text-gray-700">Location</label>
-            <input
-              name="location"
-              value={formData.location}
-              onChange={handleChange}
-              placeholder="e.g. Los Angeles, USA"
-              className={inputClass}
-            />
-          </div>
-
-          {/* Language */}
-          <div>
-            <label className="block mb-1 font-medium text-gray-700">Language</label>
-            <input
-              name="language"
-              value={formData.language}
-              onChange={handleChange}
-              placeholder="e.g. English, Spanish"
-              className={inputClass}
-            />
-          </div>
-
-          {/* Budget */}
-          <div>
-            <label className="block mb-1 font-medium text-gray-700">Budget ($)</label>
-            <input
-              name="budget"
-              type="number"
-              value={formData.budget}
-              onChange={handleChange}
-              placeholder="e.g. 1000"
-              className={inputClass}
-            />
-          </div>
-
-          {/* Engagement Rate */}
-          <div>
-            <label className="block mb-1 font-medium text-gray-700">Engagement Rate (%)</label>
-            <input
-              name="engagementRate"
-              type="number"
-              step="0.1"
-              value={formData.engagementRate}
-              onChange={handleChange}
-              placeholder="e.g. 5.2"
-              className={inputClass}
-            />
-          </div>
-        </div>
-
-        {/* Notes */}
-        <div>
-          <label className="block mb-1 font-medium text-gray-700">Additional Notes</label>
-          <textarea
-            name="notes"
-            value={formData.notes}
-            onChange={handleChange}
-            rows={3}
-            className={`${inputClass} resize-none`}
-            placeholder="Include anything else we should know..."
-          ></textarea>
-        </div>
-
-        {/* Submit */}
-        <button
-          type="submit"
-          disabled={loading || uploading}
-          className="w-full bg-red-600 text-white font-bold py-3 text-base rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50"
-        >
-          {loading ? "Starting Checkout..." : "Submit & Pay"}
-        </button>
-      </form>
+            Get in touch
+          </a>
+          .
+        </p>
+      </div>
     </main>
   );
 }

@@ -1,7 +1,8 @@
+// RequestForm.tsx
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { createClientComponentClient } from "@supabase/auth-helpers-nextjs";
 import { loadStripe } from "@stripe/stripe-js";
 
@@ -10,6 +11,14 @@ const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!
 export default function RequestForm() {
   const supabase = createClientComponentClient();
   const router = useRouter();
+  const searchParams = useSearchParams();
+
+  const initialTier =
+    (searchParams.get("tier") as
+      | "list_only"
+      | "list_plus_dm"
+      | "integration_setup"
+      | "integration_subscription") || "list_only";
 
   const [formData, setFormData] = useState({
     campaignName: "",
@@ -31,7 +40,7 @@ export default function RequestForm() {
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
 
-  // PDF brief state
+  // NEW: PDF brief state
   const [pdfFile, setPdfFile] = useState<File | null>(null);
   const [isDragging, setIsDragging] = useState(false);
   const [uploading, setUploading] = useState(false);
@@ -43,7 +52,7 @@ export default function RequestForm() {
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  // Handle file select + drag/drop
+  // Handle file select (input) + drag/drop
   const onFileSelected = (file: File) => {
     if (!file) return;
     if (file.type !== "application/pdf") {
@@ -53,25 +62,25 @@ export default function RequestForm() {
     setErrorMessage("");
     setPdfFile(file);
   };
+
   const onDrop = (e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
     setIsDragging(false);
     const file = e.dataTransfer.files?.[0];
     if (file) onFileSelected(file);
   };
+
   const onDragOver = (e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
     setIsDragging(true);
   };
+
   const onDragLeave = (e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
     setIsDragging(false);
   };
 
-  /**
-   * Upload PDF to Supabase Storage and return the storage PATH (e.g. userId/ts-file.pdf)
-   * Webhook can turn this into a signed URL later.
-   */
+  // Upload PDF to Storage, return the storage PATH
   const uploadPdfAndGetPath = async (): Promise<string | null> => {
     if (!pdfFile) return null;
 
@@ -101,10 +110,7 @@ export default function RequestForm() {
     }
   };
 
-  /**
-   * Start Stripe Checkout instead of inserting into Supabase here.
-   * The webhook will insert the request row after payment succeeds.
-   */
+  // Start Stripe Checkout instead of inserting here
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setLoading(true);
@@ -118,19 +124,18 @@ export default function RequestForm() {
       if (userError) throw userError;
       if (!user) throw new Error("You must be logged in to submit a request.");
 
-      // If PDF present, upload first and keep its storage path
+      // If a PDF is present, upload first and capture storage path
       let briefPath: string | null = null;
       if (pdfFile) {
         briefPath = await uploadPdfAndGetPath();
       }
 
-      // Create Checkout Session (default: $250 "list_only" – change if needed)
       const res = await fetch("/api/create-checkout-session", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           userId: user.id,
-          tier: "list_only", // change to "list_plus_dm" or add a selector if needed
+          tier: initialTier, // <- from pricing page
           form: {
             campaignName: formData.campaignName || null,
             niche: formData.niche || null,
@@ -146,7 +151,7 @@ export default function RequestForm() {
             budget: formData.budget || null,
             engagementRate: formData.engagementRate || null,
             notes: formData.notes || null,
-            briefPath, // storage path; webhook will create signed URL if desired
+            briefPath,
           },
         }),
       });
@@ -160,7 +165,6 @@ export default function RequestForm() {
       const stripe = await stripePromise;
       if (!stripe) throw new Error("Stripe failed to load.");
       await stripe.redirectToCheckout({ sessionId });
-      // No need to router.push; Stripe handles navigation
     } catch (err: any) {
       setErrorMessage(err.message || "Something went wrong.");
     } finally {
@@ -168,10 +172,7 @@ export default function RequestForm() {
     }
   };
 
-  /**
-   * PDF-only quick submit → same flow: upload file, then start Checkout.
-   * Metadata will include campaign name fallback based on file name.
-   */
+  // PDF-only quick submit → same flow with tier from URL
   const handlePdfOnlySubmit = async () => {
     setLoading(true);
     setErrorMessage("");
@@ -183,7 +184,6 @@ export default function RequestForm() {
       } = await supabase.auth.getUser();
       if (userError) throw userError;
       if (!user) throw new Error("You must be logged in to submit a request.");
-
       if (!pdfFile) throw new Error("Please attach a PDF brief first.");
 
       const briefPath = await uploadPdfAndGetPath();
@@ -196,13 +196,12 @@ export default function RequestForm() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           userId: user.id,
-          tier: "list_only", // adjust if you want a different price for PDF-only flow
+          tier: initialTier, // <- from pricing page
           form: {
             campaignName: formData.campaignName || fallbackName,
             niche: formData.niche || null,
             platform: formData.platform || null,
             briefPath,
-            // keep it minimal for PDF-only if you want
           },
         }),
       });
@@ -238,7 +237,7 @@ export default function RequestForm() {
 
         {errorMessage && <p className="text-red-600 text-center">{errorMessage}</p>}
 
-        {/* Upload Campaign Brief (PDF) */}
+        {/* NEW: Drag-and-drop PDF brief */}
         <div className="space-y-2">
           <label className="block font-medium text-gray-700">
             Upload Campaign Brief (PDF)
@@ -281,7 +280,7 @@ export default function RequestForm() {
             )}
           </div>
 
-          {/* Quick submit with PDF only */}
+          {/* Optional: quick submit with PDF only */}
           <button
             type="button"
             onClick={handlePdfOnlySubmit}
@@ -292,7 +291,7 @@ export default function RequestForm() {
           </button>
         </div>
 
-        {/* OR divider */}
+        {/* --- OR divider --- */}
         <div className="relative my-6">
           <div className="h-px bg-gray-200" />
           <span className="absolute left-1/2 -translate-x-1/2 -top-3 bg-white px-3 text-xs font-semibold tracking-widest text-gray-500">
@@ -300,7 +299,7 @@ export default function RequestForm() {
           </span>
         </div>
 
-        {/* Form fields */}
+        {/* —— existing form —— */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {/* Campaign Name */}
           <div className="md:col-span-2">
@@ -378,7 +377,7 @@ export default function RequestForm() {
             />
           </div>
 
-          {/* Max Avg Views (hinted) */}
+          {/* Max Avg Views */}
           <div>
             <label className="block mb-1 font-medium text-gray-700">
               Max Avg Views
@@ -407,7 +406,7 @@ export default function RequestForm() {
             />
           </div>
 
-          {/* Race & Ethnicity */}
+          {/* Race */}
           <div>
             <label className="block mb-1 font-medium text-gray-700">Race & Ethnicity</label>
             <input
