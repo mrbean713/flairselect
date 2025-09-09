@@ -13,6 +13,14 @@ export default function Forms() {
   const isLogin = mode === "login";
   const launchingRef = useRef(false); // ✅ prevent double-launch
 
+  useEffect(() => {
+    console.log("🔎 [Forms] Page loaded with params:", {
+      mode,
+      next: searchParams.get("next"),
+    });
+  }, [mode, searchParams]);
+  
+
   const [confirmationMessage, setConfirmationMessage] = useState("");
   const [forgotPasswordOpen, setForgotPasswordOpen] = useState(false);
   const [resetEmail, setResetEmail] = useState("");
@@ -106,14 +114,23 @@ export default function Forms() {
       const next = searchParams.get("next") || (isLogin ? "/dashboard" : "/onboarding");
       const redirectTo = `${origin}/auth/callback?next=${encodeURIComponent(next)}`;
 
+      console.log("🚀 [Forms] Launching Google OAuth", {
+        mode,
+        isLogin,
+        origin: window.location.origin,
+        next,
+        redirectTo,
+      });
+
       const { error } = await supabase.auth.signInWithOAuth({
         provider: "google",
         options: { redirectTo },
       });
 
       if (error) {
-        console.error("Google sign-in error:", error.message);
-        launchingRef.current = false;
+        console.error("❌ [Forms] Google sign-in error:", error.message);
+      } else {
+        console.log("✅ [Forms] signInWithOAuth call succeeded — browser will redirect to Google");
       }
     } catch (e) {
       console.error("Google sign-in threw:", e);

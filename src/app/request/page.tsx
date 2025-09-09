@@ -3,6 +3,9 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClientComponentClient } from "@supabase/auth-helpers-nextjs";
+import { loadStripe } from "@stripe/stripe-js";
+
+const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!);
 
 export default function RequestForm() {
   const supabase = createClientComponentClient();
@@ -28,9 +31,8 @@ export default function RequestForm() {
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
 
-  // NEW: PDF brief state
+  // PDF brief state
   const [pdfFile, setPdfFile] = useState<File | null>(null);
-  const [briefUrl, setBriefUrl] = useState<string | null>(null);
   const [isDragging, setIsDragging] = useState(false);
   const [uploading, setUploading] = useState(false);
 
@@ -41,7 +43,7 @@ export default function RequestForm() {
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  // NEW: Handle file select (input) + drag/drop
+  // Handle file select + drag/drop
   const onFileSelected = (file: File) => {
     if (!file) return;
     if (file.type !== "application/pdf") {
@@ -51,26 +53,26 @@ export default function RequestForm() {
     setErrorMessage("");
     setPdfFile(file);
   };
-
   const onDrop = (e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
     setIsDragging(false);
     const file = e.dataTransfer.files?.[0];
     if (file) onFileSelected(file);
   };
-
   const onDragOver = (e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
     setIsDragging(true);
   };
-
   const onDragLeave = (e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
     setIsDragging(false);
   };
 
-  // NEW: Upload PDF to Storage, return URL (public or signed)
-  const uploadPdfAndGetUrl = async (): Promise<string | null> => {
+  /**
+   * Upload PDF to Supabase Storage and return the storage PATH (e.g. userId/ts-file.pdf)
+   * Webhook can turn this into a signed URL later.
+   */
+  const uploadPdfAndGetPath = async (): Promise<string | null> => {
     if (!pdfFile) return null;
 
     setUploading(true);
@@ -84,7 +86,6 @@ export default function RequestForm() {
 
       const filePath = `${user.id}/${Date.now()}-${pdfFile.name}`;
 
-      // Upload
       const { error: uploadErr } = await supabase.storage
         .from("requests-briefs")
         .upload(filePath, pdfFile, {
@@ -94,23 +95,16 @@ export default function RequestForm() {
         });
       if (uploadErr) throw uploadErr;
 
-      // Get a URL (choose one):
-      // Option A: Public URL (bucket/object must be public)
-      // const { data: pub } = supabase.storage.from("requests-briefs").getPublicUrl(filePath);
-      // return pub?.publicUrl ?? null;
-
-      // Option B: Signed URL (recommended for private buckets)
-      const { data: signed, error: signedErr } = await supabase.storage
-        .from("requests-briefs")
-        .createSignedUrl(filePath, 60 * 60 * 24 * 7); // 7 days
-      if (signedErr) throw signedErr;
-
-      return signed?.signedUrl ?? null;
+      return filePath;
     } finally {
       setUploading(false);
     }
   };
 
+  /**
+   * Start Stripe Checkout instead of inserting into Supabase here.
+   * The webhook will insert the request row after payment succeeds.
+   */
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setLoading(true);
@@ -124,36 +118,49 @@ export default function RequestForm() {
       if (userError) throw userError;
       if (!user) throw new Error("You must be logged in to submit a request.");
 
-      // If a PDF is present, upload first and capture URL
-      let finalBriefUrl = briefUrl;
-      if (pdfFile && !briefUrl) {
-        finalBriefUrl = await uploadPdfAndGetUrl();
-        setBriefUrl(finalBriefUrl);
+      // If PDF present, upload first and keep its storage path
+      let briefPath: string | null = null;
+      if (pdfFile) {
+        briefPath = await uploadPdfAndGetPath();
       }
 
-      const { error } = await supabase.from("requests").insert([
-        {
-          campaign_name: formData.campaignName || null,
-          niche: formData.niche || null,
-          platform: formData.platform || null,
-          min_followers: formData.minFollowers ? Number(formData.minFollowers) : null,
-          max_followers: formData.maxFollowers ? Number(formData.maxFollowers) : null,
-          min_views: formData.minViews ? Number(formData.minViews) : null,
-          max_views: formData.maxViews ? Number(formData.maxViews) : null,
-          gender: formData.gender || null,
-          race: formData.race || null,
-          location: formData.location || null,
-          language: formData.language || null,
-          budget: formData.budget ? Number(formData.budget) : null,
-          engagement_rate: formData.engagementRate ? Number(formData.engagementRate) : null,
-          notes: formData.notes || null,
-          brief_url: finalBriefUrl, // NEW
-          user_id: user.id,
-        },
-      ]);
-      if (error) throw error;
+      // Create Checkout Session (default: $250 "list_only" – change if needed)
+      const res = await fetch("/api/create-checkout-session", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          userId: user.id,
+          tier: "list_only", // change to "list_plus_dm" or add a selector if needed
+          form: {
+            campaignName: formData.campaignName || null,
+            niche: formData.niche || null,
+            platform: formData.platform || null,
+            minFollowers: formData.minFollowers || null,
+            maxFollowers: formData.maxFollowers || null,
+            minViews: formData.minViews || null,
+            maxViews: formData.maxViews || null,
+            gender: formData.gender || null,
+            race: formData.race || null,
+            location: formData.location || null,
+            language: formData.language || null,
+            budget: formData.budget || null,
+            engagementRate: formData.engagementRate || null,
+            notes: formData.notes || null,
+            briefPath, // storage path; webhook will create signed URL if desired
+          },
+        }),
+      });
 
-      router.push("/dashboard");
+      if (!res.ok) {
+        const j = await res.json().catch(() => ({}));
+        throw new Error(j.error || "Failed to start checkout.");
+      }
+
+      const { sessionId } = await res.json();
+      const stripe = await stripePromise;
+      if (!stripe) throw new Error("Stripe failed to load.");
+      await stripe.redirectToCheckout({ sessionId });
+      // No need to router.push; Stripe handles navigation
     } catch (err: any) {
       setErrorMessage(err.message || "Something went wrong.");
     } finally {
@@ -161,7 +168,10 @@ export default function RequestForm() {
     }
   };
 
-  // NEW: Quick submit with PDF only
+  /**
+   * PDF-only quick submit → same flow: upload file, then start Checkout.
+   * Metadata will include campaign name fallback based on file name.
+   */
   const handlePdfOnlySubmit = async () => {
     setLoading(true);
     setErrorMessage("");
@@ -176,22 +186,36 @@ export default function RequestForm() {
 
       if (!pdfFile) throw new Error("Please attach a PDF brief first.");
 
-      const url = await uploadPdfAndGetUrl();
-      if (!url) throw new Error("Failed to upload brief.");
+      const briefPath = await uploadPdfAndGetPath();
+      if (!briefPath) throw new Error("Failed to upload brief.");
 
-      // Create minimal request row using file name for campaign_name fallback
-      const { error } = await supabase.from("requests").insert([
-        {
-          campaign_name: formData.campaignName || pdfFile.name.replace(/\.pdf$/i, ""),
-          niche: formData.niche || null,
-          platform: formData.platform || null,
-          brief_url: url,
-          user_id: user.id,
-        },
-      ]);
-      if (error) throw error;
+      const fallbackName = pdfFile.name.replace(/\.pdf$/i, "");
 
-      router.push("/dashboard");
+      const res = await fetch("/api/create-checkout-session", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          userId: user.id,
+          tier: "list_only", // adjust if you want a different price for PDF-only flow
+          form: {
+            campaignName: formData.campaignName || fallbackName,
+            niche: formData.niche || null,
+            platform: formData.platform || null,
+            briefPath,
+            // keep it minimal for PDF-only if you want
+          },
+        }),
+      });
+
+      if (!res.ok) {
+        const j = await res.json().catch(() => ({}));
+        throw new Error(j.error || "Failed to start checkout.");
+      }
+
+      const { sessionId } = await res.json();
+      const stripe = await stripePromise;
+      if (!stripe) throw new Error("Stripe failed to load.");
+      await stripe.redirectToCheckout({ sessionId });
     } catch (err: any) {
       setErrorMessage(err.message || "Something went wrong.");
     } finally {
@@ -214,7 +238,7 @@ export default function RequestForm() {
 
         {errorMessage && <p className="text-red-600 text-center">{errorMessage}</p>}
 
-        {/* NEW: Drag-and-drop PDF brief */}
+        {/* Upload Campaign Brief (PDF) */}
         <div className="space-y-2">
           <label className="block font-medium text-gray-700">
             Upload Campaign Brief (PDF)
@@ -257,7 +281,7 @@ export default function RequestForm() {
             )}
           </div>
 
-          {/* Optional: quick submit with PDF only */}
+          {/* Quick submit with PDF only */}
           <button
             type="button"
             onClick={handlePdfOnlySubmit}
@@ -267,16 +291,16 @@ export default function RequestForm() {
             Submit with PDF Only
           </button>
         </div>
-        
 
-            {/* --- OR divider --- */}
-    <div className="relative my-6">
-      <div className="h-px bg-gray-200" />
-      <span className="absolute left-1/2 -translate-x-1/2 -top-3 bg-white px-3 text-xs font-semibold tracking-widest text-gray-500">
-        OR
-      </span>
-    </div>
-        {/* —— existing form —— */}
+        {/* OR divider */}
+        <div className="relative my-6">
+          <div className="h-px bg-gray-200" />
+          <span className="absolute left-1/2 -translate-x-1/2 -top-3 bg-white px-3 text-xs font-semibold tracking-widest text-gray-500">
+            OR
+          </span>
+        </div>
+
+        {/* Form fields */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {/* Campaign Name */}
           <div className="md:col-span-2">
@@ -339,41 +363,29 @@ export default function RequestForm() {
 
           {/* Max Followers */}
           <div>
-  <label className="block mb-1 font-medium text-gray-700">
-    Max Followers
-    <span className="block text-xs font-normal text-gray-500">
-      (Leave blank if no maximum)
-    </span>
-  </label>
-  <input
-    name="maxFollowers"
-    type="number"
-    value={formData.maxFollowers}
-    onChange={handleChange}
-    className={inputClass}
-  />
-</div>
+            <label className="block mb-1 font-medium text-gray-700">
+              Max Followers
+              <span className="block text-xs font-normal text-gray-500">
+                (Leave blank if no maximum)
+              </span>
+            </label>
+            <input
+              name="maxFollowers"
+              type="number"
+              value={formData.maxFollowers}
+              onChange={handleChange}
+              className={inputClass}
+            />
+          </div>
 
-{/* Max Avg Views */}
-<div>
-  <label className="block mb-1 font-medium text-gray-700">
-    Max Avg Views
-    <span className="block text-xs font-normal text-gray-500">
-      (Leave blank if no maximum)
-    </span>
-  </label>
-  <input
-    name="maxViews"
-    type="number"
-    value={formData.maxViews}
-    onChange={handleChange}
-    className={inputClass}
-  />
-</div>
-
-          {/* Max Avg Views */}
+          {/* Max Avg Views (hinted) */}
           <div>
-            <label className="block mb-1 font-medium text-gray-700">Max Avg Views</label>
+            <label className="block mb-1 font-medium text-gray-700">
+              Max Avg Views
+              <span className="block text-xs font-normal text-gray-500">
+                (Leave blank if no maximum)
+              </span>
+            </label>
             <input
               name="maxViews"
               type="number"
@@ -395,7 +407,7 @@ export default function RequestForm() {
             />
           </div>
 
-          {/* Race */}
+          {/* Race & Ethnicity */}
           <div>
             <label className="block mb-1 font-medium text-gray-700">Race & Ethnicity</label>
             <input
@@ -478,7 +490,7 @@ export default function RequestForm() {
           disabled={loading || uploading}
           className="w-full bg-red-600 text-white font-bold py-3 text-base rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50"
         >
-          {loading ? "Submitting..." : "Submit Request"}
+          {loading ? "Starting Checkout..." : "Submit & Pay"}
         </button>
       </form>
     </main>
