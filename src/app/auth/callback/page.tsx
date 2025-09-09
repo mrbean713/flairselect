@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { createClientComponentClient } from "@supabase/auth-helpers-nextjs";
 
@@ -8,32 +8,31 @@ export default function AuthCallback() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const supabase = createClientComponentClient();
+  const exchangedRef = useRef(false); // ✅ prevents StrictMode/double-run issues
 
   useEffect(() => {
     const run = async () => {
+      if (exchangedRef.current) return;
+      exchangedRef.current = true;
+
       const code = searchParams.get("code");
       const next = searchParams.get("next") || "/dashboard";
-      const from = searchParams.get("from"); // keep existing behavior as fallback
+      const from = searchParams.get("from");
 
       try {
         if (code) {
-          const { data, error } = await supabase.auth.exchangeCodeForSession(code);
+          const { error } = await supabase.auth.exchangeCodeForSession(code);
           if (error) {
             console.error("exchangeCodeForSession error:", error);
-            return router.replace("/forms?mode=login"); // safe fallback
+            return router.replace("/forms?mode=login");
           }
         }
       } catch (e) {
         console.error("exchangeCodeForSession threw:", e);
-        return router.replace("/forms?mode=login"); // safe fallback
+        return router.replace("/forms?mode=login");
       }
 
-      // Prefer `next`; keep `from` fallback to avoid breaking existing links
-      if (from === "onboarding") {
-        router.replace("/onboarding?from=google");
-      } else {
-        router.replace(next);
-      }
+      router.replace(from === "onboarding" ? "/onboarding?from=google" : next);
     };
     run();
   }, [router, searchParams, supabase]);

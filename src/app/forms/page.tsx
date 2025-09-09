@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { FaGoogle } from "react-icons/fa";
 import { createClientComponentClient } from "@supabase/auth-helpers-nextjs";
@@ -11,6 +11,7 @@ export default function Forms() {
   const router = useRouter();
   const mode = searchParams.get("mode") || "login";
   const isLogin = mode === "login";
+  const launchingRef = useRef(false); // ✅ prevent double-launch
 
   const [confirmationMessage, setConfirmationMessage] = useState("");
   const [forgotPasswordOpen, setForgotPasswordOpen] = useState(false);
@@ -80,19 +81,43 @@ export default function Forms() {
     }
   };
 
+  // ✅ UPDATED: guard double clicks + clear stale sb-* pkce cookies before OAuth
   const handleGoogleSignIn = async () => {
-    const origin = window.location.origin; // ← localhost or vercel, automatically
-    // ✅ preserve intended destination
-    const next = searchParams.get("next") || (isLogin ? "/dashboard" : "/onboarding");
-    const redirectTo = `${origin}/auth/callback?next=${encodeURIComponent(next)}`;
+    if (launchingRef.current) return;
+    launchingRef.current = true;
 
-    const { error } = await supabase.auth.signInWithOAuth({
-      provider: "google",
-      options: { redirectTo },
-    });
+    try {
+      // Nuke any stale PKCE cookies that can cause "code challenge does not match"
+      for (const c of document.cookie.split(";")) {
+        const name = c.split("=")[0].trim();
+        if (name.startsWith("sb-") && name.includes("pkce")) {
+          // remove for current host
+          document.cookie = `${name}=; Max-Age=0; path=/`;
+          // try removing for parent domain (e.g., .vercel.app)
+          const parts = window.location.hostname.split(".");
+          if (parts.length >= 2) {
+            const domain = `.${parts.slice(-2).join(".")}`;
+            document.cookie = `${name}=; Max-Age=0; path=/; domain=${domain}`;
+          }
+        }
+      }
 
-    if (error) {
-      console.error("Google sign-in error:", error.message);
+      const origin = window.location.origin; // ← localhost or vercel, automatically
+      const next = searchParams.get("next") || (isLogin ? "/dashboard" : "/onboarding");
+      const redirectTo = `${origin}/auth/callback?next=${encodeURIComponent(next)}`;
+
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: "google",
+        options: { redirectTo },
+      });
+
+      if (error) {
+        console.error("Google sign-in error:", error.message);
+        launchingRef.current = false;
+      }
+    } catch (e) {
+      console.error("Google sign-in threw:", e);
+      launchingRef.current = false;
     }
   };
 
