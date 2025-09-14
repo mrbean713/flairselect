@@ -86,7 +86,7 @@ export default function PricingPage() {
 
               <button
                 onClick={() => router.push("/request?tier=list_only")}
-                className="w-full bg-red-600 text-white font-bold py-4 text-lg rounded-lg hover:bg-red-700 transition-colors"
+                className="w-full bg-red-600 text-white font-bold py-4 text-lg rounded-lg hover:bg-red-700 transition-colors cursor-pointer"
               >
                 Submit Request
               </button>
@@ -145,7 +145,7 @@ export default function PricingPage() {
           </div>
 
           {/* $2,500 install + $1,000/mo – Full Integration */}
-          <div className="relative bg-white rounded-2xl shadow-xl border border-gray-200 p-8 md:p-10 flex flex-col">
+          <div className="relative bg-white rounded-2xl shadow-xl border border-gray-200 p-8 md:p-10 flex flex-col cursor-not-allowed">
             {/* IG logo on top */}
             <IconRow>
               <FaInstagram className={`${iconCls} text-pink-500`} title="Instagram" />
