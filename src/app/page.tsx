@@ -10,6 +10,10 @@ import Link from 'next/link';
 import { useSession } from "@supabase/auth-helpers-react";
 import { useRouter } from "next/navigation";
 import { createClientComponentClient } from "@supabase/auth-helpers-nextjs";
+import LogoutButton from "@/components/LogoutButton";
+import { FiClock } from "react-icons/fi";
+
+
 
 export default function Home() {
   const [isVisible, setIsVisible] = useState(false);
@@ -52,34 +56,30 @@ export default function Home() {
       {session?.user ? (
         <div className="flex items-center gap-4">
           <Link href="/pricing">
-            <button className="bg-red-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-red-700 transition-colors">
+            <button className="bg-red-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-red-700 transition-colors cursor-pointer">
               Pricing
             </button>
           </Link>
           <span className="text-gray-600 font-medium">
             Welcome, {companyName || "Company"}
           </span>
-          <button
-            onClick={handleLogout}
-            className="bg-gray-900 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-gray-800 transition-colors"
-          >
-            Logout
-          </button>
+          <LogoutButton />
         </div>
       ) : (
         <div className="flex items-center gap-6">
           <Link href="/pricing">
-            <button className="bg-red-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-red-700 transition-colors">
+            <button className="bg-red-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-red-700 transition-colors cursor-pointer">
               Pricing
             </button>
           </Link>
           <Link href="/forms?mode=login">
-            <button className="text-gray-600 hover:text-gray-900 transition-colors font-medium">
-              Login
-            </button>
-          </Link>
+  <button className="bg-gray-100 text-gray-700 px-4 py-2 rounded-lg text-sm font-medium hover:bg-gray-200 hover:text-gray-900 transition-colors cursor-pointer">
+    Login
+  </button>
+</Link>
+
           <Link href="/forms?mode=signup">
-            <button className="bg-red-600 text-white px-6 py-2 rounded-lg font-medium hover:bg-red-700 transition-colors">
+            <button className="bg-red-600 text-white px-6 py-2 rounded-lg font-medium hover:bg-red-700 transition-colors cursor-pointer">
               Sign Up
             </button>
           </Link>
@@ -114,19 +114,19 @@ export default function Home() {
                 {session?.user ? (
                   <button
                     onClick={() => router.push("/dashboard")}
-                    className="w-full bg-gray-900 text-white py-4 text-lg font-semibold rounded-xl hover:bg-gray-800 transition-all duration-200 shadow-lg hover:shadow-xl"
+                    className="w-full bg-gray-900 text-white py-4 text-lg font-semibold rounded-xl hover:bg-gray-800 transition-all duration-200 shadow-lg hover:shadow-xl cursor-pointer"
                   >
                     Go to Dashboard
                   </button>
                 ) : (
                   <div className="space-y-4 w-full max-w-sm">
                     <Link href="/forms?mode=login">
-                      <button className="w-full bg-gray-900 text-white py-4 text-lg font-semibold rounded-xl hover:bg-gray-800 transition-all duration-200 shadow-lg hover:shadow-xl">
+                      <button className="w-full bg-gray-900 text-white py-4 text-lg font-semibold rounded-xl hover:bg-gray-800 transition-all duration-200 shadow-lg hover:shadow-xl cursor-pointer">
                         Login
                       </button>
                     </Link>
                     <Link href="/forms?mode=signup">
-                      <button className="w-full bg-white text-gray-900 border-2 border-gray-200 py-4 text-lg font-semibold rounded-xl hover:border-gray-300 hover:bg-gray-50 transition-all duration-200">
+                      <button className="w-full bg-white text-gray-900 border-2 border-gray-200 py-4 text-lg font-semibold rounded-xl hover:border-gray-300 hover:bg-gray-50 transition-all duration-200 cursor-pointer">
                         Sign Up
                       </button>
                     </Link>
@@ -185,7 +185,7 @@ export default function Home() {
 
                 {/* CTA Button */}
                 <div className="flex justify-center mt-8 pt-6 border-t border-gray-100">
-                  <button className="bg-red-600 text-white px-8 py-3 rounded-lg font-semibold hover:bg-red-700 transition-all duration-200 flex items-center gap-2 shadow-lg hover:shadow-xl">
+                  <button className="bg-red-600 text-white px-8 py-3 rounded-lg font-semibold hover:bg-red-700 transition-all duration-200 flex items-center gap-2 shadow-lg hover:shadow-xl cursor-pointer">
                     Submit Campaign
                     <FaArrowRight className="group-hover:translate-x-1 transition-transform" />
                   </button>
@@ -256,7 +256,7 @@ export default function Home() {
           <p className="text-xl mb-8 text-red-100">
             Join thousands of brands who trust FLAIR Select for their influencer campaigns.
           </p>
-          <button className="bg-white text-red-600 px-8 py-4 rounded-xl font-bold text-lg hover:bg-gray-100 transition-colors shadow-xl">
+          <button className="bg-white text-red-600 px-8 py-4 rounded-xl font-bold text-lg hover:bg-gray-100 transition-colors shadow-xl cursor-pointer">
             Start Your Campaign Today
           </button>
         </div>

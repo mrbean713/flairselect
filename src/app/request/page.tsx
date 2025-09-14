@@ -5,6 +5,18 @@ import { useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { createClientComponentClient } from "@supabase/auth-helpers-nextjs";
 import { loadStripe } from "@stripe/stripe-js";
+import Select from "react-select";
+import { useEffect } from "react";
+const PLATFORM_OPTIONS = [
+  { value: "instagram", label: "Instagram" },
+  { value: "tiktok", label: "TikTok" },
+  { value: "x", label: "X (Twitter)" },
+  { value: "youtube", label: "YouTube" },
+  { value: "linkedin", label: "LinkedIn" },
+];
+
+const ONLY_IG = [{ value: "instagram", label: "Instagram" }];
+
 
 const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!);
 
@@ -20,10 +32,28 @@ export default function RequestForm() {
       | "integration_setup"
       | "integration_subscription") || "list_only";
 
+
+
+      useEffect(() => {
+        if (initialTier === "list_plus_dm") {
+          setFormData(prev => ({ ...prev, platforms: ["instagram"] }));
+        }
+      }, [initialTier]);
+    
+
+
+
+        // 👉 put this here
+  const isListPlus = initialTier === "list_plus_dm";
+  const platformOptions = isListPlus ? ONLY_IG : PLATFORM_OPTIONS;
+
+  
+
+
   const [formData, setFormData] = useState({
     campaignName: "",
     niche: "",
-    platform: "instagram",
+    platforms: [] as string[],   // <- was: platform: "instagram"
     minFollowers: "",
     maxFollowers: "",
     minViews: "",
@@ -45,12 +75,20 @@ export default function RequestForm() {
   const [isDragging, setIsDragging] = useState(false);
   const [uploading, setUploading] = useState(false);
 
+
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
   ) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
+
+  // keep your existing handleChange for inputs/textarea
+  const handlePlatformsChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const values = Array.from(e.target.selectedOptions).map(o => o.value);
+    setFormData(prev => ({ ...prev, platforms: values }));
+  };
+
 
   // Handle file select (input) + drag/drop
   const onFileSelected = (file: File) => {
@@ -139,7 +177,7 @@ export default function RequestForm() {
           form: {
             campaignName: formData.campaignName || null,
             niche: formData.niche || null,
-            platform: formData.platform || null,
+            platforms: formData.platforms.join(",") || null,
             minFollowers: formData.minFollowers || null,
             maxFollowers: formData.maxFollowers || null,
             minViews: formData.minViews || null,
@@ -200,7 +238,7 @@ export default function RequestForm() {
           form: {
             campaignName: formData.campaignName || fallbackName,
             niche: formData.niche || null,
-            platform: formData.platform || null,
+            platforms: formData.platforms.join(",") || null,
             briefPath,
           },
         }),
@@ -285,7 +323,7 @@ export default function RequestForm() {
             type="button"
             onClick={handlePdfOnlySubmit}
             disabled={loading || !pdfFile}
-            className="w-full bg-gray-900 text-white font-semibold py-2 rounded-lg hover:bg-gray-800 transition-colors disabled:opacity-50"
+            className="w-full bg-gray-900 text-white font-semibold py-2 rounded-lg hover:bg-gray-800 transition-colors disabled:opacity-50 cursor-pointer"
           >
             Submit with PDF Only
           </button>
@@ -329,24 +367,34 @@ export default function RequestForm() {
             />
           </div>
 
-          {/* Platform */}
-          <div>
-            <label className="block mb-1 font-medium text-gray-700">
-              Platform<span className="text-red-500">*</span>
-            </label>
-            <select
-              name="platform"
-              value={formData.platform}
-              onChange={handleChange}
-              className={inputClass}
-            >
-              <option value="instagram">Instagram</option>
-              <option value="tiktok">TikTok</option>
-              <option value="x">X (Twitter)</option>
-              <option value="youtube">YouTube</option>
-              <option value="linkedin">LinkedIn</option>
-            </select>
-          </div>
+{/* Platform (multi-select dropdown) */}
+<div>
+  <label className="block mb-1 font-medium text-gray-700">
+    Platform<span className="text-red-500">*</span>
+    {!isListPlus && (
+      <span className="block text-xs font-normal text-gray-500">
+        Select one or more
+      </span>
+    )}
+  </label>
+
+  <Select
+  isMulti
+  isSearchable={false}        // 🔒 no typing, dropdown only
+  instanceId="platforms"
+  options={platformOptions}
+  value={platformOptions.filter(o => formData.platforms.includes(o.value))}
+  onChange={(vals) => {
+    const arr = (vals ?? []).map(v => v.value);
+    setFormData(prev => ({ ...prev, platforms: arr }));
+  }}
+  isClearable={false}
+  classNamePrefix="rs"
+  className="text-gray-900"
+/>
+
+</div>  {/* <-- close the wrapper BEFORE the next field */}
+
 
           {/* Min Followers */}
           <div>
@@ -376,6 +424,24 @@ export default function RequestForm() {
               className={inputClass}
             />
           </div>
+
+                    {/* Min Avg Views */}
+          <div>
+            <label className="block mb-1 font-medium text-gray-700">
+              Min Avg Views
+              <span className="block text-xs font-normal text-gray-500">
+                (Leave blank if no minimum)
+              </span>
+            </label>
+            <input
+              name="minViews"
+              type="number"
+              value={formData.minViews}
+              onChange={handleChange}
+              className={inputClass}
+            />
+          </div>
+
 
           {/* Max Avg Views */}
           <div>
@@ -487,7 +553,7 @@ export default function RequestForm() {
         <button
           type="submit"
           disabled={loading || uploading}
-          className="w-full bg-red-600 text-white font-bold py-3 text-base rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50"
+          className="w-full bg-red-600 text-white font-bold py-3 text-base rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50 cursor-pointer"
         >
           {loading ? "Starting Checkout..." : "Submit & Pay"}
         </button>

@@ -3,10 +3,23 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { FiCheck } from "react-icons/fi";
+import { FiCheck, FiClock } from "react-icons/fi";
+import { FaInstagram, FaLinkedin, FaYoutube } from "react-icons/fa";
+import { FaXTwitter } from "react-icons/fa6";
+import { SiTiktok } from "react-icons/si";
 
 export default function PricingPage() {
   const router = useRouter();
+
+  const IconRow = ({ children }: { children: React.ReactNode }) => (
+    <div
+      className="absolute -top-4 left-1/2 -translate-x-1/2 flex items-center gap-2 bg-white rounded-full px-3 py-1 shadow"
+      aria-hidden
+    >
+      {children}
+    </div>
+  );
+  const iconCls = "w-5 h-5";
 
   const featuresListOnly = [
     "Curated creator list",
@@ -21,7 +34,7 @@ export default function PricingPage() {
     "Personalized first messages",
     "Response tracking & sheet",
     "Status updates via email",
-    "Final List of Committed Creators"
+    "Final List of Committed Creators",
   ];
 
   const featuresIntegration = [
@@ -40,7 +53,15 @@ export default function PricingPage() {
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {/* $250 – List Only */}
-          <div className="bg-white rounded-2xl shadow-xl border border-gray-200 p-8 md:p-10 flex flex-col">
+          <div className="relative bg-white rounded-2xl shadow-xl border border-gray-200 p-8 md:p-10 flex flex-col">
+            <IconRow>
+              <FaInstagram className={`${iconCls} text-pink-500`} title="Instagram" />
+              <SiTiktok className={iconCls} style={{ color: "#010101" }} title="TikTok" />
+              <FaXTwitter className={iconCls} style={{ color: "#000000" }} title="X (Twitter)" />
+              <FaLinkedin className={`${iconCls} text-blue-600`} title="LinkedIn" />
+              <FaYoutube className={`${iconCls} text-red-600`} title="YouTube" />
+            </IconRow>
+
             <div className="mb-6">
               <p className="text-gray-900 font-semibold text-lg">Influencer List</p>
               <div className="mt-2 flex items-baseline gap-2">
@@ -74,11 +95,17 @@ export default function PricingPage() {
 
           {/* $1,000 – List + DM Outreach (Most Popular) */}
           <div className="relative bg-white rounded-2xl shadow-xl border-2 border-red-600 p-8 md:p-10 flex flex-col">
-            <span className="absolute -top-3 left-1/2 -translate-x-1/2 bg-red-600 text-white text-xs font-bold px-3 py-1 rounded-full shadow">
+            {/* IG logo at top */}
+            <IconRow>
+              <FaInstagram className={`${iconCls} text-pink-500`} title="Instagram" />
+            </IconRow>
+
+            {/* Most Popular badge BELOW the logo */}
+            <span className="absolute top-6 left-1/2 -translate-x-1/2 bg-red-600 text-white text-xs font-bold px-3 py-1 rounded-full shadow">
               Most Popular
             </span>
 
-            <div className="mb-6">
+            <div className="mb-6 mt-8">
               <p className="text-gray-900 font-semibold text-lg">List + DM Outreach</p>
               <div className="mt-2 flex items-baseline gap-2">
                 <span className="text-4xl md:text-5xl font-bold text-gray-900">$1,000</span>
@@ -86,7 +113,7 @@ export default function PricingPage() {
               </div>
             </div>
 
-            <ul className="space-y-3 mb-8 text-gray-800">
+            <ul className="space-y-3 mb-6 text-gray-800">
               {featuresListPlusDM.map((f) => (
                 <li key={f} className="flex items-start gap-3">
                   <FiCheck className="mt-1 shrink-0" />
@@ -94,6 +121,14 @@ export default function PricingPage() {
                 </li>
               ))}
             </ul>
+
+            {/* Coming soon note */}
+            <div className="w-full flex justify-center my-3">
+              <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-orange-50 border border-orange-200 text-orange-700">
+                <FiClock className="text-orange-500" />
+                <span className="text-sm font-medium">Coming soon for other platforms</span>
+              </div>
+            </div>
 
             <div className="mt-auto">
               <p className="text-sm text-gray-600 mb-4">
@@ -110,8 +145,13 @@ export default function PricingPage() {
           </div>
 
           {/* $2,500 install + $1,000/mo – Full Integration */}
-          <div className="bg-white rounded-2xl shadow-xl border border-gray-200 p-8 md:p-10 flex flex-col">
-            <div className="mb-6">
+          <div className="relative bg-white rounded-2xl shadow-xl border border-gray-200 p-8 md:p-10 flex flex-col">
+            {/* IG logo on top */}
+            <IconRow>
+              <FaInstagram className={`${iconCls} text-pink-500`} title="Instagram" />
+            </IconRow>
+
+            <div className="mb-6 mt-6">
               <p className="text-gray-900 font-semibold text-lg">Integrated Outreach</p>
               <div className="mt-2">
                 <div className="flex items-baseline gap-2">
@@ -125,7 +165,7 @@ export default function PricingPage() {
               </div>
             </div>
 
-            <ul className="space-y-3 mb-8 text-gray-800">
+            <ul className="space-y-3 mb-6 text-gray-800">
               {featuresIntegration.map((f) => (
                 <li key={f} className="flex items-start gap-3">
                   <FiCheck className="mt-1 shrink-0" />
@@ -134,21 +174,28 @@ export default function PricingPage() {
               ))}
             </ul>
 
+            {/* Coming soon note */}
+            <div className="w-full flex justify-center my-3">
+              <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-orange-50 border border-orange-200 text-orange-700">
+                <FiClock className="text-orange-500" />
+                <span className="text-sm font-medium">Coming soon for other platforms</span>
+              </div>
+            </div>
+
             <div className="mt-auto">
               <p className="text-sm text-gray-600 mb-4">
-                We plug our brand into your brand’s IG backend with automated mass DM outreach and follow-ups.{" "}
-                <span className="font-semibold"></span>
+                We plug our brand into your brand’s IG backend with automated mass DM outreach and follow-ups.
               </p>
 
               <Link
                 href="/request?tier=integration_setup"
                 className="block w-full bg-red-600 text-white font-bold py-4 text-lg rounded-lg hover:bg-red-700 transition-colors text-center"
               >
-                Book Integration Call
+                Contact Us
               </Link>
             </div>
           </div>
-        </div>
+        </div> {/* <-- missing closing div for the grid (added) */}
 
         {/* Optional fine print */}
         <p className="text-center text-sm text-gray-500 mt-6">

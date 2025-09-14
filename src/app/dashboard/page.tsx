@@ -82,7 +82,7 @@ export default function DashboardPage() {
           </div>
           <button
             onClick={handleLogout}
-            className="flex items-center gap-2 bg-red-600 hover:bg-red-700 text-white font-medium py-3 px-5 rounded-lg transition-colors"
+            className="flex items-center gap-2 bg-red-600 hover:bg-red-700 text-white font-medium py-3 px-5 rounded-lg transition-colors cursor-pointer"
           >
             <FaSignOutAlt /> Logout
           </button>
@@ -103,7 +103,7 @@ export default function DashboardPage() {
         <section className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
         <button
             onClick={() => router.push("/active")}
-            className="bg-white p-6 rounded-xl shadow-lg border border-gray-200 text-left transform transition-all duration-200 hover:scale-105 hover:shadow-2xl hover:border-red-400"
+            className="bg-white p-6 rounded-xl shadow-lg border border-gray-200 text-left transform transition-all duration-200 hover:scale-105 hover:shadow-2xl hover:border-red-400 cursor-pointer"
         >
             <div className="flex items-center justify-between">
             <div>
@@ -118,7 +118,7 @@ export default function DashboardPage() {
 
         <button
             onClick={() => router.push("/completed")}
-            className="bg-white p-6 rounded-xl shadow-lg border border-gray-200 text-left transform transition-all duration-200 hover:scale-105 hover:shadow-2xl hover:border-red-400"
+            className="bg-white p-6 rounded-xl shadow-lg border border-gray-200 text-left transform transition-all duration-200 hover:scale-105 hover:shadow-2xl hover:border-red-400 cursor-pointer"
         >
             <div className="flex items-center justify-between">
             <div>
@@ -134,20 +134,20 @@ export default function DashboardPage() {
 
 
         {/* New Campaign CTA */}
+{/* New Campaign CTA */}
         <section className="bg-red-600 p-8 rounded-2xl text-center">
-          <h3 className="text-2xl font-bold text-white mb-2">
-            Ready for Your Next Campaign?
-          </h3>
+          <h3 className="text-2xl font-bold text-white mb-2">Ready for Your Next Campaign?</h3>
           <p className="text-red-100 mb-6">
             Get matched with perfect influencers for your brand in 24 hours or less.
           </p>
           <button
-            onClick={() => router.push("/request")}
-            className="inline-flex items-center gap-2 bg-white text-red-600 font-bold py-4 px-8 rounded-xl text-lg hover:bg-gray-100 transition-colors shadow-lg"
+            onClick={() => router.push("/pricing")}   // <-- was "/request"
+            className="inline-flex items-center gap-2 bg-white text-red-600 font-bold py-4 px-8 rounded-xl text-lg hover:bg-gray-100 transition-colors shadow-lg cursor-pointer"
           >
             <FaRocket /> Request New Campaign
           </button>
         </section>
+
       </div>
     </main>
   );

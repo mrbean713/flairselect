@@ -158,7 +158,7 @@ export default function Forms() {
       {/* Sticky Back to Home Button */}
       <button
         onClick={() => router.push("/")}
-        className="fixed top-6 left-6 bg-gray-100 text-gray-700 px-4 py-2 rounded-lg font-medium hover:bg-gray-200 transition-colors shadow"
+        className="fixed top-6 left-6 bg-gray-100 text-gray-700 px-4 py-2 rounded-lg font-medium hover:bg-gray-200 transition-colors shadow cursor-pointer"
       >
         ← Back to Home
       </button>
@@ -176,7 +176,7 @@ export default function Forms() {
               isLogin
                 ? "bg-red-600 text-white"
                 : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-            }`}
+            } cursor-pointer`}
             onClick={() => handleToggleMode("login")}
           >
             Login
@@ -186,7 +186,7 @@ export default function Forms() {
               !isLogin
                 ? "bg-red-600 text-white"
                 : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-            }`}
+            } cursor-pointer`}
             onClick={() => handleToggleMode("signup")}
           >
             Sign Up
@@ -223,7 +223,7 @@ export default function Forms() {
               <button
                 type="button"
                 onClick={() => setForgotPasswordOpen(true)}
-                className="text-sm text-blue-600 hover:underline font-medium"
+                className="text-sm text-blue-600 hover:underline font-medium cursor-pointer"
               >
                 Forgot password?
               </button>
@@ -263,7 +263,7 @@ export default function Forms() {
 
           <button
             type="submit"
-            className="w-full bg-red-600 text-white font-bold py-4 text-lg rounded-lg hover:bg-red-700 transition-colors"
+            className="w-full bg-red-600 text-white font-bold py-4 text-lg rounded-lg hover:bg-red-700 transition-colors cursor-pointer"
           >
             {isLogin ? "Login" : "Sign Up"}
           </button>
@@ -273,7 +273,7 @@ export default function Forms() {
           <button
             type="button"
             onClick={handleGoogleSignIn}
-            className="w-full bg-white text-gray-900 border-2 border-gray-200 py-4 text-lg font-semibold rounded-xl hover:border-gray-300 hover:bg-gray-50 transition-all duration-200 flex items-center justify-center gap-3 shadow-lg hover:shadow-xl"
+            className="w-full bg-white text-gray-900 border-2 border-gray-200 py-4 text-lg font-semibold rounded-xl hover:border-gray-300 hover:bg-gray-50 transition-all duration-200 flex items-center justify-center gap-3 shadow-lg hover:shadow-xl cursor-pointer"
           >
             <FaGoogle className="text-lg text-blue-600" />
             {isLogin ? "Login with Google" : "Sign Up with Google"}
@@ -297,13 +297,13 @@ export default function Forms() {
               <div className="flex justify-between gap-2">
                 <button
                   onClick={() => setForgotPasswordOpen(false)}
-                  className="w-1/2 py-2 rounded bg-gray-100 text-gray-700 hover:bg-gray-200 font-medium"
+                  className="w-1/2 py-2 rounded bg-gray-100 text-gray-700 hover:bg-gray-200 font-medium cursor-pointer"
                 >
                   Cancel
                 </button>
                 <button
                   onClick={handlePasswordReset}
-                  className="w-1/2 py-2 rounded bg-red-600 text-white hover:bg-red-700 font-medium"
+                  className="w-1/2 py-2 rounded bg-red-600 text-white hover:bg-red-700 font-medium cursor-pointer"
                 >
                   Send Reset
                 </button>
