@@ -9,49 +9,46 @@ export async function GET(req: NextRequest) {
   const next = url.searchParams.get("next") || "/dashboard";
   const from = url.searchParams.get("from");
 
-  console.log("🔐 [AuthCallback] Incoming request:", {
+  console.log("AuthCallback incoming request:", {
     url: req.url,
     codePresent: !!code,
     next,
     from,
-    cookies: req.cookies.getAll().map(c => c.name), // show cookie names
   });
 
-  // If no code, bounce to login
   if (!code) {
-    console.log("⚠️ [AuthCallback] No code provided, redirecting to /forms");
     url.pathname = "/forms";
     url.searchParams.set("mode", "login");
     return NextResponse.redirect(url);
   }
 
-  const supabase = createRouteHandlerClient({ cookies });
+  // ✅ Grab cookie store once, reuse it
+  const cookieStore = cookies();
+  const supabase = createRouteHandlerClient({ cookies: () => cookieStore });
 
   try {
-    const { error, data } = await supabase.auth.exchangeCodeForSession(code);
+    const { data, error } = await supabase.auth.exchangeCodeForSession(code);
 
     if (error) {
-      console.error("❌ [AuthCallback] exchangeCodeForSession error:", error);
+      console.error("exchangeCodeForSession error:", error.message);
       url.pathname = "/forms";
       url.searchParams.set("mode", "login");
       url.searchParams.delete("code");
       return NextResponse.redirect(url);
     }
 
-    console.log("✅ [AuthCallback] Session exchange successful:", {
+    console.log("Session exchange successful:", {
       user: data?.user?.id,
       expires: data?.session?.expires_at,
     });
   } catch (err) {
-    console.error("💥 [AuthCallback] exchangeCodeForSession threw:", err);
+    console.error("Exception in exchangeCodeForSession:", err);
     url.pathname = "/forms";
     url.searchParams.set("mode", "login");
     url.searchParams.delete("code");
     return NextResponse.redirect(url);
   }
 
-  // Successful: go where the user intended
   const target = from === "onboarding" ? "/onboarding?from=google" : next;
-  console.log("➡️ [AuthCallback] Redirecting to:", target);
   return NextResponse.redirect(new URL(target, url.origin));
 }
