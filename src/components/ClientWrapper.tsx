@@ -2,7 +2,7 @@
 
 import { SessionContextProvider } from "@supabase/auth-helpers-react";
 import { createPagesBrowserClient } from "@supabase/auth-helpers-nextjs";
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import type { Session } from "@supabase/auth-helpers-nextjs";
 
 export function ClientWrapper({
@@ -14,7 +14,9 @@ export function ClientWrapper({
 }) {
   const isBrowser = typeof window !== "undefined";
   const hostname = isBrowser ? window.location.hostname : "";
-  const isProd = isBrowser && (hostname.endsWith(".vercel.app") || hostname === "flairselect.vercel.app");
+  const isProd =
+    isBrowser &&
+    (hostname.endsWith(".vercel.app") || hostname === "flairselect.vercel.app");
 
   // ✅ Use helpers client; don't rename cookies; only add domain/secure in prod
   const [supabaseClient] = useState(() =>
@@ -38,7 +40,10 @@ export function ClientWrapper({
   );
 
   return (
-    <SessionContextProvider supabaseClient={supabaseClient} initialSession={session}>
+    <SessionContextProvider
+      supabaseClient={supabaseClient}
+      initialSession={session} // 👈 added to hydrate session correctly
+    >
       {children}
     </SessionContextProvider>
   );

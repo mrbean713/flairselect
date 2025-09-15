@@ -1,15 +1,22 @@
 "use client";
 
-import { createClientComponentClient } from "@supabase/auth-helpers-nextjs";
 import { useRouter } from "next/navigation";
+import { createClientComponentClient } from "@supabase/auth-helpers-nextjs";
 
 export default function LogoutButton() {
   const supabase = createClientComponentClient();
   const router = useRouter();
 
   async function handleLogout() {
-    await supabase.auth.signOut(); // don't pass scope: "global"
-    router.push("/forms?mode=login");
+    // Clear server HttpOnly cookie (source of truth)
+    await fetch("/auth/signout", { method: "POST", credentials: "include" });
+
+    // Clear client-side state
+    await supabase.auth.signOut().catch(() => {});
+
+    // Ensure UI re-renders as logged out
+    router.refresh();
+    router.replace("/forms?mode=login");
   }
 
   return (

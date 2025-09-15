@@ -5,6 +5,9 @@ import { cookies } from "next/headers";
 import { createServerComponentClient } from "@supabase/auth-helpers-nextjs";
 import { ClientWrapper } from "@/components/ClientWrapper";
 import type { Metadata } from "next";
+import { unstable_noStore as noStore } from "next/cache";
+
+export const dynamic = "force-dynamic";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -26,6 +29,7 @@ export default async function RootLayout({
 }: {
   children: React.ReactNode;
 }) {
+  noStore();
   const supabase = createServerComponentClient({ cookies });
 
   const {

@@ -1,12 +1,11 @@
-// RequestForm.tsx
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { createClientComponentClient } from "@supabase/auth-helpers-nextjs";
 import { loadStripe } from "@stripe/stripe-js";
 import Select from "react-select";
-import { useEffect } from "react";
+
 const PLATFORM_OPTIONS = [
   { value: "instagram", label: "Instagram" },
   { value: "tiktok", label: "TikTok" },
@@ -14,9 +13,7 @@ const PLATFORM_OPTIONS = [
   { value: "youtube", label: "YouTube" },
   { value: "linkedin", label: "LinkedIn" },
 ];
-
 const ONLY_IG = [{ value: "instagram", label: "Instagram" }];
-
 
 const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!);
 
@@ -32,28 +29,19 @@ export default function RequestForm() {
       | "integration_setup"
       | "integration_subscription") || "list_only";
 
+  useEffect(() => {
+    if (initialTier === "list_plus_dm") {
+      setFormData((prev) => ({ ...prev, platforms: ["instagram"] }));
+    }
+  }, [initialTier]);
 
-
-      useEffect(() => {
-        if (initialTier === "list_plus_dm") {
-          setFormData(prev => ({ ...prev, platforms: ["instagram"] }));
-        }
-      }, [initialTier]);
-    
-
-
-
-        // 👉 put this here
   const isListPlus = initialTier === "list_plus_dm";
   const platformOptions = isListPlus ? ONLY_IG : PLATFORM_OPTIONS;
-
-  
-
 
   const [formData, setFormData] = useState({
     campaignName: "",
     niche: "",
-    platforms: [] as string[],   // <- was: platform: "instagram"
+    platforms: [] as string[],
     minFollowers: "",
     maxFollowers: "",
     minViews: "",
@@ -69,12 +57,9 @@ export default function RequestForm() {
 
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
-
-  // NEW: PDF brief state
   const [pdfFile, setPdfFile] = useState<File | null>(null);
   const [isDragging, setIsDragging] = useState(false);
   const [uploading, setUploading] = useState(false);
-
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
@@ -83,14 +68,6 @@ export default function RequestForm() {
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  // keep your existing handleChange for inputs/textarea
-  const handlePlatformsChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const values = Array.from(e.target.selectedOptions).map(o => o.value);
-    setFormData(prev => ({ ...prev, platforms: values }));
-  };
-
-
-  // Handle file select (input) + drag/drop
   const onFileSelected = (file: File) => {
     if (!file) return;
     if (file.type !== "application/pdf") {
@@ -107,21 +84,17 @@ export default function RequestForm() {
     const file = e.dataTransfer.files?.[0];
     if (file) onFileSelected(file);
   };
-
   const onDragOver = (e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
     setIsDragging(true);
   };
-
   const onDragLeave = (e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
     setIsDragging(false);
   };
 
-  // Upload PDF to Storage, return the storage PATH
   const uploadPdfAndGetPath = async (): Promise<string | null> => {
     if (!pdfFile) return null;
-
     setUploading(true);
     try {
       const {
@@ -132,7 +105,6 @@ export default function RequestForm() {
       if (!user) throw new Error("You must be logged in to upload a brief.");
 
       const filePath = `${user.id}/${Date.now()}-${pdfFile.name}`;
-
       const { error: uploadErr } = await supabase.storage
         .from("requests-briefs")
         .upload(filePath, pdfFile, {
@@ -148,7 +120,6 @@ export default function RequestForm() {
     }
   };
 
-  // Start Stripe Checkout instead of inserting here
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setLoading(true);
@@ -162,7 +133,6 @@ export default function RequestForm() {
       if (userError) throw userError;
       if (!user) throw new Error("You must be logged in to submit a request.");
 
-      // If a PDF is present, upload first and capture storage path
       let briefPath: string | null = null;
       if (pdfFile) {
         briefPath = await uploadPdfAndGetPath();
@@ -173,7 +143,7 @@ export default function RequestForm() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           userId: user.id,
-          tier: initialTier, // <- from pricing page
+          tier: initialTier,
           form: {
             campaignName: formData.campaignName || null,
             niche: formData.niche || null,
@@ -210,56 +180,6 @@ export default function RequestForm() {
     }
   };
 
-  // PDF-only quick submit → same flow with tier from URL
-  const handlePdfOnlySubmit = async () => {
-    setLoading(true);
-    setErrorMessage("");
-
-    try {
-      const {
-        data: { user },
-        error: userError,
-      } = await supabase.auth.getUser();
-      if (userError) throw userError;
-      if (!user) throw new Error("You must be logged in to submit a request.");
-      if (!pdfFile) throw new Error("Please attach a PDF brief first.");
-
-      const briefPath = await uploadPdfAndGetPath();
-      if (!briefPath) throw new Error("Failed to upload brief.");
-
-      const fallbackName = pdfFile.name.replace(/\.pdf$/i, "");
-
-      const res = await fetch("/api/create-checkout-session", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          userId: user.id,
-          tier: initialTier, // <- from pricing page
-          form: {
-            campaignName: formData.campaignName || fallbackName,
-            niche: formData.niche || null,
-            platforms: formData.platforms.join(",") || null,
-            briefPath,
-          },
-        }),
-      });
-
-      if (!res.ok) {
-        const j = await res.json().catch(() => ({}));
-        throw new Error(j.error || "Failed to start checkout.");
-      }
-
-      const { sessionId } = await res.json();
-      const stripe = await stripePromise;
-      if (!stripe) throw new Error("Stripe failed to load.");
-      await stripe.redirectToCheckout({ sessionId });
-    } catch (err: any) {
-      setErrorMessage(err.message || "Something went wrong.");
-    } finally {
-      setLoading(false);
-    }
-  };
-
   const inputClass =
     "w-full border border-gray-300 rounded px-3 py-2 text-base focus:ring-2 focus:ring-red-300 outline-none text-gray-900";
 
@@ -275,69 +195,7 @@ export default function RequestForm() {
 
         {errorMessage && <p className="text-red-600 text-center">{errorMessage}</p>}
 
-        {/* NEW: Drag-and-drop PDF brief */}
-        <div className="space-y-2">
-          <label className="block font-medium text-gray-700">
-            Upload Campaign Brief (PDF)
-          </label>
-
-          <div
-            onDrop={onDrop}
-            onDragOver={onDragOver}
-            onDragLeave={onDragLeave}
-            className={`flex flex-col items-center justify-center gap-2 border-2 border-dashed rounded-lg p-6 text-center transition
-              ${isDragging ? "border-red-400 bg-red-50" : "border-gray-300 bg-gray-50"}`}
-          >
-            <p className="text-sm text-gray-700">
-              Drag & drop your PDF here, or click to select.
-            </p>
-            <input
-              type="file"
-              accept="application/pdf"
-              onChange={(e) => {
-                const f = e.target.files?.[0];
-                if (f) onFileSelected(f);
-              }}
-              className="hidden"
-              id="briefInput"
-            />
-            <label
-              htmlFor="briefInput"
-              className="cursor-pointer inline-block bg-red-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-red-700 transition"
-            >
-              {pdfFile ? "Change PDF" : "Choose PDF"}
-            </label>
-
-            {pdfFile && (
-              <div className="text-xs text-gray-600 mt-1">
-                Selected: <span className="font-medium">{pdfFile.name}</span>
-              </div>
-            )}
-            {uploading && (
-              <div className="text-xs text-gray-500 mt-1">Uploading…</div>
-            )}
-          </div>
-
-          {/* Optional: quick submit with PDF only */}
-          <button
-            type="button"
-            onClick={handlePdfOnlySubmit}
-            disabled={loading || !pdfFile}
-            className="w-full bg-gray-900 text-white font-semibold py-2 rounded-lg hover:bg-gray-800 transition-colors disabled:opacity-50 cursor-pointer"
-          >
-            Submit with PDF Only
-          </button>
-        </div>
-
-        {/* --- OR divider --- */}
-        <div className="relative my-6">
-          <div className="h-px bg-gray-200" />
-          <span className="absolute left-1/2 -translate-x-1/2 -top-3 bg-white px-3 text-xs font-semibold tracking-widest text-gray-500">
-            OR
-          </span>
-        </div>
-
-        {/* —— existing form —— */}
+        {/* Campaign Form Fields */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {/* Campaign Name */}
           <div className="md:col-span-2">
@@ -367,34 +225,31 @@ export default function RequestForm() {
             />
           </div>
 
-{/* Platform (multi-select dropdown) */}
-<div>
-  <label className="block mb-1 font-medium text-gray-700">
-    Platform<span className="text-red-500">*</span>
-    {!isListPlus && (
-      <span className="block text-xs font-normal text-gray-500">
-        Select one or more
-      </span>
-    )}
-  </label>
-
-  <Select
-  isMulti
-  isSearchable={false}        // 🔒 no typing, dropdown only
-  instanceId="platforms"
-  options={platformOptions}
-  value={platformOptions.filter(o => formData.platforms.includes(o.value))}
-  onChange={(vals) => {
-    const arr = (vals ?? []).map(v => v.value);
-    setFormData(prev => ({ ...prev, platforms: arr }));
-  }}
-  isClearable={false}
-  classNamePrefix="rs"
-  className="text-gray-900"
-/>
-
-</div>  {/* <-- close the wrapper BEFORE the next field */}
-
+          {/* Platform Multi-select */}
+          <div>
+            <label className="block mb-1 font-medium text-gray-700">
+              Platform<span className="text-red-500">*</span>
+              {!isListPlus && (
+                <span className="block text-xs font-normal text-gray-500">
+                  Select one or more
+                </span>
+              )}
+            </label>
+            <Select
+              isMulti
+              isSearchable={false}
+              instanceId="platforms"
+              options={platformOptions}
+              value={platformOptions.filter((o) => formData.platforms.includes(o.value))}
+              onChange={(vals) => {
+                const arr = (vals ?? []).map((v) => v.value);
+                setFormData((prev) => ({ ...prev, platforms: arr }));
+              }}
+              isClearable={false}
+              classNamePrefix="rs"
+              className="text-gray-900"
+            />
+          </div>
 
           {/* Min Followers */}
           <div>
@@ -425,7 +280,7 @@ export default function RequestForm() {
             />
           </div>
 
-                    {/* Min Avg Views */}
+          {/* Min Avg Views */}
           <div>
             <label className="block mb-1 font-medium text-gray-700">
               Min Avg Views
@@ -441,7 +296,6 @@ export default function RequestForm() {
               className={inputClass}
             />
           </div>
-
 
           {/* Max Avg Views */}
           <div>
@@ -536,7 +390,57 @@ export default function RequestForm() {
           </div>
         </div>
 
-        {/* Notes */}
+        {/* Divider before Supplemental Section */}
+        <div className="relative my-6">
+          <div className="h-px bg-gray-200" />
+          <span className="absolute left-1/2 -translate-x-1/2 -top-3 bg-white px-3 text-xs font-semibold tracking-widest text-gray-500">
+            Supplemental Details
+          </span>
+        </div>
+
+        {/* PDF Upload Section */}
+        <div className="space-y-2">
+          <label className="block font-medium text-gray-700">
+            Upload Campaign Brief (PDF)
+          </label>
+          <div
+            onDrop={onDrop}
+            onDragOver={onDragOver}
+            onDragLeave={onDragLeave}
+            className={`flex flex-col items-center justify-center gap-2 border-2 border-dashed rounded-lg p-6 text-center transition
+              ${isDragging ? "border-red-400 bg-red-50" : "border-gray-300 bg-gray-50"}`}
+          >
+            <p className="text-sm text-gray-700">
+              Drag & drop your PDF here, or click to select.
+            </p>
+            <input
+              type="file"
+              accept="application/pdf"
+              onChange={(e) => {
+                const f = e.target.files?.[0];
+                if (f) onFileSelected(f);
+              }}
+              className="hidden"
+              id="briefInput"
+            />
+            <label
+              htmlFor="briefInput"
+              className="cursor-pointer inline-block bg-red-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-red-700 transition"
+            >
+              {pdfFile ? "Change PDF" : "Choose PDF"}
+            </label>
+            {pdfFile && (
+              <div className="text-xs text-gray-600 mt-1">
+                Selected: <span className="font-medium">{pdfFile.name}</span>
+              </div>
+            )}
+            {uploading && (
+              <div className="text-xs text-gray-500 mt-1">Uploading…</div>
+            )}
+          </div>
+        </div>
+
+        {/* Additional Notes */}
         <div>
           <label className="block mb-1 font-medium text-gray-700">Additional Notes</label>
           <textarea

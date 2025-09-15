@@ -37,14 +37,12 @@ export default function DashboardPage() {
     const fetchCampaignStats = async () => {
       if (!session?.user) return;
 
-      // Total requests
-        // Completed requests for this user
-        const { count: totalCount, error: totalError } = await supabase
+      // Completed requests for this user
+      const { count: totalCount, error: totalError } = await supabase
         .from("requests")
         .select("*", { count: "exact", head: true })
         .eq("user_id", session.user.id)
         .eq("status", "completed");
-
 
       if (!totalError) setTotalRequests(totalCount || 0);
 
@@ -65,8 +63,10 @@ export default function DashboardPage() {
   }, [session, supabase]);
 
   const handleLogout = async () => {
-    await supabase.auth.signOut();
-    router.push("/forms?mode=login");
+    await fetch("/auth/signout", { method: "POST", credentials: "include" });
+    await supabase.auth.signOut().catch(() => {});
+    router.refresh();
+    router.replace("/forms?mode=login");
   };
 
   return (
@@ -98,43 +98,40 @@ export default function DashboardPage() {
           </p>
         </section>
 
-        
         {/* Stats Overview (Clickable) */}
         <section className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-        <button
+          <button
             onClick={() => router.push("/active")}
             className="bg-white p-6 rounded-xl shadow-lg border border-gray-200 text-left transform transition-all duration-200 hover:scale-105 hover:shadow-2xl hover:border-red-400 cursor-pointer"
-        >
+          >
             <div className="flex items-center justify-between">
-            <div>
+              <div>
                 <p className="text-sm font-medium text-gray-600">Active Campaigns</p>
                 <p className="text-2xl font-bold text-gray-900">{activeCampaigns}</p>
-            </div>
-            <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
+              </div>
+              <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
                 <FaCheckCircle className="text-green-600 text-xl" />
+              </div>
             </div>
-            </div>
-        </button>
+          </button>
 
-        <button
+          <button
             onClick={() => router.push("/completed")}
             className="bg-white p-6 rounded-xl shadow-lg border border-gray-200 text-left transform transition-all duration-200 hover:scale-105 hover:shadow-2xl hover:border-red-400 cursor-pointer"
-        >
+          >
             <div className="flex items-center justify-between">
-            <div>
+              <div>
                 <p className="text-sm font-medium text-gray-600">Completed Requests</p>
                 <p className="text-2xl font-bold text-gray-900">{totalRequests}</p>
-            </div>
-            <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
+              </div>
+              <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
                 <FaRocket className="text-blue-600 text-xl" />
+              </div>
             </div>
-            </div>
-        </button>
+          </button>
         </section>
 
-
         {/* New Campaign CTA */}
-{/* New Campaign CTA */}
         <section className="bg-red-600 p-8 rounded-2xl text-center">
           <h3 className="text-2xl font-bold text-white mb-2">Ready for Your Next Campaign?</h3>
           <p className="text-red-100 mb-6">
@@ -147,7 +144,6 @@ export default function DashboardPage() {
             <FaRocket /> Request New Campaign
           </button>
         </section>
-
       </div>
     </main>
   );
