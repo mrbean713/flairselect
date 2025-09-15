@@ -20,7 +20,7 @@ export default function LogoutButton() {
   }
 
   return (
-    <button onClick={handleLogout} className="rounded bg-[#111827] px-4 py-2 text-white">
+    <button onClick={handleLogout} className="rounded bg-[#111827] px-4 py-2 text-white cursor-pointer">
       Logout
     </button>
   );

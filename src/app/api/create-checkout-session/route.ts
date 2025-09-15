@@ -27,14 +27,16 @@ export async function POST(req: NextRequest) {
     const supabase = createRouteHandlerClient({ cookies: () => cookieStore });
 
     const {
-      data: { user },
-      error: userError,
-    } = await supabase.auth.getUser();
-
-    if (userError || !user) {
+      data: { session },
+      error: sessionError,
+    } = await supabase.auth.getSession();
+    
+    if (sessionError || !session?.user) {
       return NextResponse.json({ error: "Auth session missing!" }, { status: 401 });
     }
-
+    
+    const user = session.user;
+    
     const { form, tier } = await req.json();
 
     // Metadata: safe, small, string-only
