@@ -124,20 +124,24 @@ export default function RequestForm() {
     e.preventDefault();
     setLoading(true);
     setErrorMessage("");
-
+  
     try {
+      // Check auth client-side first
       const {
         data: { user },
-        error: userError,
       } = await supabase.auth.getUser();
-      if (userError) throw userError;
-      if (!user) throw new Error("You must be logged in to submit a request.");
-
+  
+      if (!user) {
+        // 🚀 Redirect to login if logged out
+        router.push("/forms?mode=login");
+        return;
+      }
+  
       let briefPath: string | null = null;
       if (pdfFile) {
         briefPath = await uploadPdfAndGetPath();
       }
-
+  
       const res = await fetch("/api/create-checkout-session", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -163,12 +167,18 @@ export default function RequestForm() {
           },
         }),
       });
-
+  
+      if (res.status === 401) {
+        // 🚀 Backend says "Auth session missing"
+        router.push("/forms?mode=login");
+        return;
+      }
+  
       if (!res.ok) {
         const j = await res.json().catch(() => ({}));
         throw new Error(j.error || "Failed to start checkout.");
       }
-
+  
       const { sessionId } = await res.json();
       const stripe = await stripePromise;
       if (!stripe) throw new Error("Stripe failed to load.");
@@ -179,6 +189,7 @@ export default function RequestForm() {
       setLoading(false);
     }
   };
+  
 
   const inputClass =
     "w-full border border-gray-300 rounded px-3 py-2 text-base focus:ring-2 focus:ring-red-300 outline-none text-gray-900";
