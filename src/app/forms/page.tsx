@@ -25,6 +25,14 @@ export default function Forms() {
   const [forgotPasswordOpen, setForgotPasswordOpen] = useState(false);
   const [resetEmail, setResetEmail] = useState("");
 
+  // 🔔 Show a notice if they were redirected here before submitting a request
+  useEffect(() => {
+    const next = searchParams.get("next");
+    if (next) {
+      setConfirmationMessage("Please login before submitting a request.");
+    }
+  }, [searchParams]);
+
   const [formData, setFormData] = useState({
     email: "",
     password: "",
@@ -44,8 +52,10 @@ export default function Forms() {
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
-    // ✅ preserve intended destination
-    const next = searchParams.get("next") || (isLogin ? "/dashboard" : "/onboarding");
+    // ✅ preserve intended destination, but if it was a request flow,
+    // send them back to /pricing after login as asked
+    const rawNext = searchParams.get("next") || (isLogin ? "/dashboard" : "/onboarding");
+    const dest = rawNext.startsWith("/request") ? "/pricing" : rawNext;
 
     if (isLogin) {
       const { error } = await supabase.auth.signInWithPassword({
@@ -58,7 +68,7 @@ export default function Forms() {
         return;
       }
 
-      router.push(next); // 🔁 go where the user intended
+      router.push(dest); // 🔁 go where the user should land
     } else {
       const { data, error } = await supabase.auth.signUp({
         email: formData.email,
@@ -111,14 +121,15 @@ export default function Forms() {
       }
 
       const origin = window.location.origin; // ← localhost or vercel, automatically
-      const next = searchParams.get("next") || (isLogin ? "/dashboard" : "/onboarding");
-      const redirectTo = `${origin}/auth/callback?next=${encodeURIComponent(next)}`;
+      const rawNext = searchParams.get("next") || (isLogin ? "/dashboard" : "/onboarding");
+      const dest = rawNext.startsWith("/request") ? "/pricing" : rawNext; // 🔁 after OAuth, land on pricing instead of request
+      const redirectTo = `${origin}/auth/callback?next=${encodeURIComponent(dest)}`;
 
       console.log("🚀 [Forms] Launching Google OAuth", {
         mode,
         isLogin,
         origin: window.location.origin,
-        next,
+        next: dest,
         redirectTo,
       });
 

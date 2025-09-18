@@ -7,6 +7,7 @@ import { FiCheck, FiClock } from "react-icons/fi";
 import { FaInstagram, FaLinkedin, FaYoutube } from "react-icons/fa";
 import { FaXTwitter } from "react-icons/fa6";
 import { SiTiktok } from "react-icons/si";
+import { useSession } from "@supabase/auth-helpers-react";
 
 export default function PricingPage() {
   const router = useRouter();
@@ -19,11 +20,23 @@ export default function PricingPage() {
       {children}
     </div>
   );
+  const session = useSession();
+
+  const goToRequest = (tier: string) => {
+    const next = `/request?tier=${encodeURIComponent(tier)}`;
+    if (!session?.user) {
+      // Redirect to login if not logged in
+      router.push(`/forms?mode=login&next=${encodeURIComponent(next)}`);
+    } else {
+      router.push(next);
+    }
+  };
+
   const iconCls = "w-5 h-5";
 
   const featuresListOnly = [
     "Curated creator list",
-    "Instagram, TikTok, LinkedIn",
+    "Instagram, TikTok, X, LinkedIn, Youtube",
     "Vetted creators only",
     "Delivered in 24–48 hours",
   ];
@@ -85,7 +98,7 @@ export default function PricingPage() {
               </p>
 
               <button
-                onClick={() => router.push("/request?tier=list_only")}
+                onClick={() => goToRequest("list_only")}
                 className="w-full bg-red-600 text-white font-bold py-4 text-lg rounded-lg hover:bg-red-700 transition-colors cursor-pointer"
               >
                 Submit Request
@@ -136,8 +149,8 @@ export default function PricingPage() {
               </p>
 
               <button
-                onClick={() => router.push("/request?tier=list_plus_dm")}
-                className="w-full bg-red-600 text-white font-bold py-4 text-lg rounded-lg hover:bg-red-700 transition-colors"
+                onClick={() => goToRequest("list_plus_dm")}
+                className="w-full bg-red-600 text-white font-bold py-4 text-lg rounded-lg hover:bg-red-700 transition-colors cursor-pointer"
               >
                 Submit Request
               </button>
@@ -145,7 +158,7 @@ export default function PricingPage() {
           </div>
 
           {/* $2,500 install + $1,000/mo – Full Integration */}
-          <div className="relative bg-white rounded-2xl shadow-xl border border-gray-200 p-8 md:p-10 flex flex-col cursor-not-allowed">
+          <div className="relative bg-white rounded-2xl shadow-xl border border-gray-200 p-8 md:p-10 flex flex-col">
             {/* IG logo on top */}
             <IconRow>
               <FaInstagram className={`${iconCls} text-pink-500`} title="Instagram" />
@@ -188,7 +201,8 @@ export default function PricingPage() {
               </p>
 
               <Link
-                href="/request?tier=integration_setup"
+                href="#"
+                onClick={(e) => { e.preventDefault(); goToRequest("integration_setup"); }}
                 className="block w-full bg-red-600 text-white font-bold py-4 text-lg rounded-lg hover:bg-red-700 transition-colors text-center"
               >
                 Contact Us
