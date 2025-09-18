@@ -58,7 +58,15 @@ export default function PricingPage() {
   ];
 
   return (
-    <main className="min-h-screen bg-gray-50 flex items-center justify-center px-6 py-24">
+    <main className="min-h-screen bg-gray-50 flex items-center justify-center px-6 py-24 relative">
+      {/* Sticky Back to Home Button */}
+      <button
+        onClick={() => router.push("/")}
+        className="fixed top-6 left-6 bg-gray-100 text-gray-700 px-4 py-2 rounded-lg font-medium hover:bg-gray-200 transition-colors shadow cursor-pointer"
+      >
+        ← Back to Home
+      </button>
+
       <div className="w-full max-w-6xl">
         <h1 className="text-3xl font-bold text-gray-900 text-center mb-10">
           Pricing

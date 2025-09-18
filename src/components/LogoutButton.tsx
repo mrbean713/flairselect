@@ -14,9 +14,8 @@ export default function LogoutButton() {
     // Clear client-side state
     await supabase.auth.signOut().catch(() => {});
 
-    // Ensure UI re-renders as logged out
-    router.refresh();
-    router.replace("/forms?mode=login");
+    // Hard redirect ensures session + UI reset
+    window.location.href = "/forms?mode=login";
   }
 
   return (
