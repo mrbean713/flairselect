@@ -65,9 +65,9 @@ export default function DashboardPage() {
   const handleLogout = async () => {
     await fetch("/auth/signout", { method: "POST", credentials: "include" });
     await supabase.auth.signOut().catch(() => {});
-    router.refresh();
-    router.replace("/forms?mode=login");
+    window.location.href = "/forms?mode=login"; // ← hard reload ensures fully logged out
   };
+  
 
   return (
     <main className="min-h-screen bg-gray-50 text-gray-900">
