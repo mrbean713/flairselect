@@ -22,7 +22,6 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
 
 export async function POST(req: NextRequest) {
   try {
-    // ✅ Hydrate Supabase from cookies
     const cookieStore = cookies();
     const supabase = createRouteHandlerClient({ cookies: () => cookieStore });
 
@@ -30,16 +29,16 @@ export async function POST(req: NextRequest) {
       data: { session },
       error: sessionError,
     } = await supabase.auth.getSession();
-    
+
     if (sessionError || !session?.user) {
       return NextResponse.json({ error: "Auth session missing!" }, { status: 401 });
     }
-    
-    const user = session.user;
-    
-    const { form, tier } = await req.json();
 
-    // Metadata: safe, small, string-only
+    const user = session.user;
+
+    // Optionally let the client tell us a promo_code to auto-apply (Stripe ID like 'promo_...')
+    const { form, tier, promotion_code } = await req.json(); // 👈 optional
+
     const metadata: Record<string, string> = {
       user_id: user.id,
       email: user.email ?? "",
@@ -53,89 +52,106 @@ export async function POST(req: NextRequest) {
     const successTo = (path: string) => `${SITE_URL}${path}`;
     const cancelTo = (path: string) => `${SITE_URL}${path}`;
 
-    if (tier === "list_only") {
-      const session = await stripe.checkout.sessions.create({
-        mode: "payment",
-        customer_email: user.email ?? undefined, // ✅ attach real email
-        line_items: [
-          {
-            price_data: {
-              currency: "usd",
-              unit_amount: 25000,
-              product_data: { name: "Influencer List" },
-            },
-            quantity: 1,
-          },
-        ],
-        success_url: successTo("/dashboard?paid=true"),
-        cancel_url: cancelTo("/pricing?canceled=true"),
+    // Helper to add shared Checkout params, including promotions
+    const withPromos = (base: Stripe.Checkout.SessionCreateParams) => {
+      const params: Stripe.Checkout.SessionCreateParams = {
+        allow_promotion_codes: true, // 👈 shows the discount code box
+        customer_email: user.email ?? undefined,
         metadata,
-      });
-      return NextResponse.json({ sessionId: session.id });
+        ...base,
+      };
+
+      // If you want to auto-apply a specific code, pass promotion_code from client
+      if (promotion_code) {
+        params.discounts = [{ promotion_code }]; // 👈 pre-applies the code
+      }
+
+      return params;
+    };
+
+    if (tier === "list_only") {
+      const session = await stripe.checkout.sessions.create(
+        withPromos({
+          mode: "payment",
+          line_items: [
+            {
+              price_data: {
+                currency: "usd",
+                unit_amount: 25000,
+                product_data: { name: "Influencer List" },
+              },
+              quantity: 1,
+            },
+          ],
+          success_url: successTo("/dashboard?paid=true"),
+          cancel_url: cancelTo("/pricing?canceled=true"),
+        })
+      );
+      return NextResponse.json({ sessionId: session.id, url: session.url });
     }
 
     if (tier === "list_plus_dm") {
-      const session = await stripe.checkout.sessions.create({
-        mode: "payment",
-        customer_email: user.email ?? undefined,
-        line_items: [
-          {
-            price_data: {
-              currency: "usd",
-              unit_amount: 100000,
-              product_data: { name: "List + DM Outreach" },
+      const session = await stripe.checkout.sessions.create(
+        withPromos({
+          mode: "payment",
+          line_items: [
+            {
+              price_data: {
+                currency: "usd",
+                unit_amount: 100000,
+                product_data: { name: "List + DM Outreach" },
+              },
+              quantity: 1,
             },
-            quantity: 1,
-          },
-        ],
-        success_url: successTo("/dashboard?paid=true"),
-        cancel_url: cancelTo("/pricing?canceled=true"),
-        metadata,
-      });
-      return NextResponse.json({ sessionId: session.id });
+          ],
+          success_url: successTo("/dashboard?paid=true"),
+          cancel_url: cancelTo("/pricing?canceled=true"),
+        })
+      );
+      return NextResponse.json({ sessionId: session.id, url: session.url });
     }
 
     if (tier === "integration_setup") {
-      const session = await stripe.checkout.sessions.create({
-        mode: "payment",
-        customer_email: user.email ?? undefined,
-        line_items: [
-          {
-            price_data: {
-              currency: "usd",
-              unit_amount: 250000,
-              product_data: { name: "Integrated Outreach – Installation" },
+      const session = await stripe.checkout.sessions.create(
+        withPromos({
+          mode: "payment",
+          line_items: [
+            {
+              price_data: {
+                currency: "usd",
+                unit_amount: 250000,
+                product_data: { name: "Integrated Outreach – Installation" },
+              },
+              quantity: 1,
             },
-            quantity: 1,
-          },
-        ],
-        success_url: successTo("/pricing?setup_paid=true"),
-        cancel_url: cancelTo("/pricing?canceled=true"),
-        metadata,
-      });
-      return NextResponse.json({ sessionId: session.id });
+          ],
+          success_url: successTo("/pricing?setup_paid=true"),
+          cancel_url: cancelTo("/pricing?canceled=true"),
+        })
+      );
+      return NextResponse.json({ sessionId: session.id, url: session.url });
     }
 
     if (tier === "integration_subscription") {
-      const session = await stripe.checkout.sessions.create({
-        mode: "subscription",
-        customer_email: user.email ?? undefined,
-        line_items: [
-          {
-            price_data: {
-              currency: "usd",
-              unit_amount: 100000,
-              recurring: { interval: "month" },
-              product_data: { name: "Integrated Outreach – Monthly Maintenance" },
+      const session = await stripe.checkout.sessions.create(
+        withPromos({
+          mode: "subscription",
+          line_items: [
+            {
+              price_data: {
+                currency: "usd",
+                unit_amount: 100000,
+                recurring: { interval: "month" },
+                product_data: { name: "Integrated Outreach – Monthly Maintenance" },
+              },
+              quantity: 1,
             },
-            quantity: 1,
-          },
-        ],
-        success_url: successTo("/dashboard?subscribed=true"),
-        cancel_url: cancelTo("/pricing?canceled=true"),
-        metadata,
-      });
-      return NextResponse.json({ sessionId: session.id });
+          ],
+          success_url: successTo("/dashboard?subscribed=true"),
+          cancel_url: cancelTo("/pricing?canceled=true"),
+        })
+      );
+      return NextResponse.json({ sessionId: session.id, url: session.url });
     }
 
     return NextResponse.json({ error: "Unknown tier" }, { status: 400 });
