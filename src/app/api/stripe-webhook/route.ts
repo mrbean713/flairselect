@@ -41,12 +41,13 @@ export async function POST(req: NextRequest) {
       user_id: md.user_id ?? null,
       campaign_name: md.campaignName ?? null,
       niche: md.niche ?? null,
-      platform: md.platform ?? null,
+      platform: md.platform && md.platform.trim() !== "" ? md.platform : null, // ✅ no empty string
       brief_url: md.briefUrl ?? null,
       status: "active",
       stripe_session_id: session.id,
       amount_paid: session.amount_total ?? null,
     };
+    
 
     console.log("📝 Upserting payload:", payload);
 
