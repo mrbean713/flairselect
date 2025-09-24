@@ -11,12 +11,22 @@ import { useSession } from "@supabase/auth-helpers-react";
 import { useRouter } from "next/navigation";
 import { createClientComponentClient } from "@supabase/auth-helpers-nextjs";
 import LogoutButton from "@/components/LogoutButton";
+import Image from "next/image";
+
 
 export default function Home() {
   const [isVisible, setIsVisible] = useState(false);
   const session = useSession();
   const supabase = createClientComponentClient();
   const router = useRouter();
+
+  const [scrolled, setScrolled] = useState(false);
+
+  useEffect(() => {
+    const handleScroll = () => setScrolled(window.scrollY > 50);
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
 
   const [companyName, setCompanyName] = useState<string | null>(null);
 
@@ -100,11 +110,20 @@ export default function Home() {
                 <h2 className="text-lg text-gray-600 mb-3 font-medium">
                   Welcome to
                 </h2>
+
+
                 <h1 className="text-7xl sm:text-8xl lg:text-9xl font-black mb-8 leading-none tracking-tight">
-                  <span className="text-red-600">FLAIR</span>
-                  <br />
-                  <span className="text-gray-900">Select</span>
-                </h1>
+  <img
+    src="/flair-logo.png"
+    alt="Flair Logo"
+    className="h-[1.2em] object-contain inline-block align-baseline"
+  />
+  <br />
+  <span className="text-gray-900">Select</span>
+</h1>
+
+
+                
                 <p className="text-xl text-gray-700 max-w-xl leading-relaxed mb-12">
                   The most precise influencer sourcing engine in the world.{" "}
                   <br />

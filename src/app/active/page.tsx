@@ -3,13 +3,14 @@
 import { useEffect, useState } from "react";
 import { useSession } from "@supabase/auth-helpers-react";
 import { createClientComponentClient } from "@supabase/auth-helpers-nextjs";
+import { useRouter } from "next/navigation";
 
 export default function ActiveRequestsPage() {
   const session = useSession();
   const supabase = createClientComponentClient();
+  const router = useRouter();
   const [requests, setRequests] = useState<any[]>([]);
 
-  // Fetch active requests
   useEffect(() => {
     if (!session?.user) return;
 
@@ -18,7 +19,7 @@ export default function ActiveRequestsPage() {
         .from("requests")
         .select("*")
         .eq("user_id", session.user.id)
-        .eq("status", "active") // rely on DB status
+        .eq("status", "active")
         .order("created_at", { ascending: false });
 
       if (error) {
@@ -33,6 +34,14 @@ export default function ActiveRequestsPage() {
 
   return (
     <main className="min-h-screen bg-gray-50 text-gray-900 px-6 py-8">
+      {/* Back button */}
+      <button
+        onClick={() => router.push("/dashboard")}
+        className="mb-6 px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg text-gray-800 font-medium"
+      >
+        ← Back
+      </button>
+
       <h1 className="text-3xl font-bold mb-6">Active Requests</h1>
       <div className="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden">
         <table className="w-full text-left">
@@ -42,7 +51,6 @@ export default function ActiveRequestsPage() {
               <th className="py-3 px-4 font-semibold">Campaign Name</th>
               <th className="py-3 px-4 font-semibold">Niche</th>
               <th className="py-3 px-4 font-semibold">Platform</th>
-              <th className="py-3 px-4 font-semibold">Budget</th>
               <th className="py-3 px-4 font-semibold">Created</th>
             </tr>
           </thead>
@@ -53,7 +61,6 @@ export default function ActiveRequestsPage() {
                 <td className="py-3 px-4">{req.campaign_name || "-"}</td>
                 <td className="py-3 px-4">{req.niche}</td>
                 <td className="py-3 px-4">{req.platform}</td>
-                <td className="py-3 px-4">${req.budget || "-"}</td>
                 <td className="py-3 px-4">
                   {new Date(req.created_at).toLocaleString()}
                 </td>
@@ -61,7 +68,7 @@ export default function ActiveRequestsPage() {
             ))}
             {requests.length === 0 && (
               <tr>
-                <td colSpan={6} className="text-center py-6 text-gray-900 font-medium">
+                <td colSpan={5} className="text-center py-6 text-gray-900 font-medium">
                   No active requests found.
                 </td>
               </tr>
