@@ -13,7 +13,6 @@ import { createClientComponentClient } from "@supabase/auth-helpers-nextjs";
 import LogoutButton from "@/components/LogoutButton";
 import Image from "next/image";
 
-
 export default function Home() {
   const [isVisible, setIsVisible] = useState(false);
   const session = useSession();
@@ -21,6 +20,41 @@ export default function Home() {
   const router = useRouter();
 
   const [scrolled, setScrolled] = useState(false);
+
+  const OLD_ITEMS = [
+    "Can't find enough niche creators",
+    "Filters don't work",
+    "Outdated influencer data",
+    "Complicated platforms",
+  ];
+
+  const NEW_ITEMS = [
+    "Submit your criteria",
+    "Receive influencers within 48 hours",
+    "Get put in contact with desired creators",
+    "Launch your campaign",
+  ];
+
+  const FEATURES = [
+    {
+      title: "Any Level of Specificity",
+      description:
+        "No matter how specific your criteria, we'll find creators that match — guaranteed.",
+      number: "01",
+    },
+    {
+      title: "Quality and Quantity",
+      description:
+        "Whether you need creators who match specific niches, location, follower count, or any other criteria — Flair delivers both quality and scale.",
+      number: "02",
+    },
+    {
+      title: "Dynamic",
+      description:
+        "Flair Select doesn't rely on vague filters or outdated tags. Our proprietary tech uses real-time data from social platforms to identify influencers that actually fit your campaign.",
+      number: "03",
+    },
+  ];
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 50);
@@ -57,72 +91,78 @@ export default function Home() {
   return (
     <main className="min-h-screen bg-gray-50 text-gray-900 relative overflow-x-hidden overflow-y-clip">
       {/* Header */}
-{/* Header */}
-<header className="sticky top-0 z-50 border-b border-gray-200 bg-white/80 backdrop-blur-sm">
-  <div className="mx-auto max-w-7xl px-4 sm:px-6 py-3">
-    <nav className="flex items-center justify-between">
-      {/* Brand */}
-      <div className="text-2xl font-bold text-red-600">FLAIR</div>
+      <header className="sticky top-0 z-50 border-b border-gray-200 bg-white/80 backdrop-blur-sm">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 py-3">
+          <nav className="flex items-center justify-between">
+            {/* Brand */}
+            <Image
+              src="/flair-logo.png"
+              alt="Flair Logo"
+              width={120}
+              height={40}
+              className="object-contain"
+              priority
+            />
 
-      {/* Actions */}
-      {session?.user ? (
-        <div className="flex items-center gap-2 sm:gap-3 md:gap-4 shrink-0">
-          <Link href="/pricing" className="whitespace-nowrap">
-            <button
-              className="px-3 py-1.5 md:px-4 md:py-2 text-sm md:text-base
-                         rounded-lg bg-red-600 text-white font-medium
-                         hover:bg-red-700 transition-colors cursor-pointer"
-            >
-              Pricing
-            </button>
-          </Link>
+            {/* Actions */}
+            {session?.user ? (
+              <div className="flex items-center gap-2 sm:gap-3 md:gap-4 shrink-0">
+                <Link href="/pricing" className="whitespace-nowrap">
+                  <button
+                    className="px-3 py-1.5 md:px-4 md:py-2 text-sm md:text-base
+                               rounded-lg bg-red-600 text-white font-medium
+                               hover:bg-red-700 transition-colors cursor-pointer"
+                  >
+                    Pricing
+                  </button>
+                </Link>
 
-          <span className="hidden xs:block text-[13px] sm:text-sm md:text-base text-gray-600 font-medium whitespace-nowrap">
-            Welcome, {companyName || "Company"}
-          </span>
+                <span className="hidden xs:block text-[13px] sm:text-sm md:text-base text-gray-600 font-medium whitespace-nowrap">
+                  Welcome, {companyName || "Company"}
+                </span>
 
-          <div className="whitespace-nowrap">
-            <LogoutButton />
-          </div>
+                <div className="whitespace-nowrap">
+                  <LogoutButton />
+                </div>
+              </div>
+            ) : (
+              <div className="flex items-center gap-2 sm:gap-3 md:gap-4 shrink-0">
+                <Link href="/pricing" className="whitespace-nowrap">
+                  <button
+                    className="px-3 py-1.5 md:px-4 md:py-2 text-sm md:text-base
+                               rounded-lg bg-red-600 text-white font-medium
+                               hover:bg-red-700 transition-colors cursor-pointer"
+                  >
+                    
+                    Pricing
+                  </button>
+                </Link>
+
+                <Link href="/forms?mode=login" className="whitespace-nowrap">
+                  <button
+                    className="px-3 py-1.5 md:px-4 md:py-2 text-sm md:text-base
+                               rounded-lg bg-gray-100 text-gray-700
+                               hover:bg-gray-200 hover:text-gray-900
+                               transition-colors cursor-pointer"
+                  >
+                    Login
+                  </button>
+                </Link>
+
+                <Link href="/forms?mode=signup" className="whitespace-nowrap">
+                  <button
+                    className="px-3 py-1.5 md:px-5 md:py-2 text-sm md:text-base
+                               rounded-xl bg-red-600 text-white font-semibold
+                               hover:bg-red-700 transition-colors cursor-pointer"
+                  >
+                    Sign Up
+                  </button>
+                </Link>
+              </div>
+            )}
+          </nav>
         </div>
-      ) : (
-        <div className="flex items-center gap-2 sm:gap-3 md:gap-4 shrink-0">
-          <Link href="/pricing" className="whitespace-nowrap">
-            <button
-              className="px-3 py-1.5 md:px-4 md:py-2 text-sm md:text-base
-                         rounded-lg bg-red-600 text-white font-medium
-                         hover:bg-red-700 transition-colors cursor-pointer"
-            >
-              Pricing
-            </button>
-          </Link>
-
-          <Link href="/forms?mode=login" className="whitespace-nowrap">
-            <button
-              className="px-3 py-1.5 md:px-4 md:py-2 text-sm md:text-base
-                         rounded-lg bg-gray-100 text-gray-700
-                         hover:bg-gray-200 hover:text-gray-900
-                         transition-colors cursor-pointer"
-            >
-              Login
-            </button>
-          </Link>
-
-          <Link href="/forms?mode=signup" className="whitespace-nowrap">
-            <button
-              className="px-3 py-1.5 md:px-5 md:py-2 text-sm md:text-base
-                         rounded-xl bg-red-600 text-white font-semibold
-                         hover:bg-red-700 transition-colors cursor-pointer"
-            >
-              Sign Up
-            </button>
-          </Link>
-        </div>
-      )}
-    </nav>
-  </div>
-</header>
-
+      </header>
 
       {/* Hero Section */}
       <section className="pt-20 pb-16 px-6">
@@ -137,22 +177,16 @@ export default function Home() {
                     : "translate-y-8 opacity-0"
                 }`}
               >
-<h2 className="text-base text-gray-600 mb-2">Welcome to</h2>
+                <img
+                  src="/flair-logo-cropped.png"
+                  alt="Flair Logo"
+                  className="block h-28 sm:h-36 lg:h-44 object-contain mb-10"
+                />
 
-{/* Logo as its own block so it scales like a box, not inline text */}
-<img
-  src="/flair-logo.png"
-  alt="Flair Logo"
-  className="block h-28 sm:h-36 lg:h-44 object-contain mb-4"
-/>
+                <h1 className="text-6xl sm:text-8xl lg:text-9xl font-black leading-none tracking-tight text-gray-900">
+                  Select
+                </h1>
 
-<h1 className="text-6xl sm:text-8xl lg:text-9xl font-black leading-none tracking-tight text-gray-900">
-  Select
-</h1>
-
-
-
-                
                 <p className="text-xl text-gray-700 max-w-xl leading-relaxed mb-12">
                   The most precise influencer sourcing engine in the world.{" "}
                   <br />
@@ -163,8 +197,7 @@ export default function Home() {
                   — no matter how specific.
                   <br />
                   <br />
-                 Trusted by the best. Better than
-                  agencies.
+                  Trusted by the best. Better than agencies.
                 </p>
 
                 {/* Dynamic Buttons */}
@@ -193,61 +226,39 @@ export default function Home() {
             </div>
 
             {/* Comparison Section */}
-            <div className="w-full lg:w-1/2">
-              <div className="bg-white rounded-2xl border border-gray-200 shadow-xl p-8">
-                <div className="flex flex-col sm:flex-row gap-8">
-                  {/* Old Way */}
-                  <div className="flex-1">
-                    <h3 className="text-xl font-bold text-gray-900 mb-6 pb-2 border-b-2 border-red-200">
-                      Old way
-                    </h3>
-                    <div className="space-y-3">
-                      {[
-                        "Can't find enough niche creators",
-                        "Filters don't work",
-                        "Outdated influencer data",
-                        "Complicated platforms",
-                      ].map((text, i) => (
-                        <div
-                          key={i}
-                          className="flex items-start gap-3 p-4 bg-red-50 rounded-lg border-l-4 border-red-200 group hover:bg-red-100 transition-colors cursor-pointer"
-                        >
-                          <FaTimesCircle className="text-red-500 mt-1 flex-shrink-0 group-hover:scale-110 transition-transform" />
-                          <p className="text-gray-700 text-sm leading-relaxed">
-                            {text}
-                          </p>
-                        </div>
-                      ))}
+{/* Comparison Section */}
+{/* Comparison Section */}
+<div className="w-full lg:w-5/6 xl:w-11/12">
+  <div className="bg-white rounded-2xl border border-gray-200 shadow-xl p-10">
+    <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-5 items-start">
+      <h3 className="text-xl font-bold text-gray-900 leading-none pb-2 mb-2 border-b border-red-200 h-10 flex items-center">
+        Old way
+      </h3>
+      <h3 className="text-xl font-bold pb-2 mb-2 border-b border-red-200 h-10 flex items-center gap-2">
+        <img
+          src="/flair-logo-cropped.png"
+          alt="Flair Logo"
+          className="h-6 object-contain"
+        />
+        <span className="text-red-600 translate-y-[6px]">way</span>
+      </h3>
+                  {OLD_ITEMS.map((left, i) => (
+                    <div className="contents" key={i}>
+                      <div className="flex items-center gap-3 p-4 bg-red-50 rounded-lg border-l-4 border-red-200 hover:bg-red-100 transition-colors min-h-[56px]">
+                        <FaTimesCircle className="text-red-500 text-lg shrink-0" />
+                        <p className="text-gray-700 text-base leading-none whitespace-nowrap">
+                          {left}
+                        </p>
+                      </div>
+                      <div className="flex items-center gap-3 p-4 bg-green-50 rounded-lg border-l-4 border-green-200 hover:bg-green-100 transition-colors min-h-[56px]">
+                        <FaCheckCircle className="text-green-500 text-lg shrink-0" />
+                        <p className="text-gray-800 text-base leading-none whitespace-nowrap">
+                          {NEW_ITEMS[i]}
+                        </p>
+                      </div>
                     </div>
-                  </div>
-
-                  {/* Flair Way */}
-                  <div className="flex-1">
-                    <h3 className="text-xl font-bold text-red-600 mb-6 pb-2 border-b-2 border-red-200">
-                      FLAIR way
-                    </h3>
-                    <div className="space-y-3">
-                      {[
-                        "Submit your criteria",
-                        "Receive influencers within 48 hours",
-                        "Get put in contact with desired creators",
-                        "Launch your campaign",
-                      ].map((text, i) => (
-                        <div
-                          key={i}
-                          className="flex items-start gap-3 p-4 bg-green-50 rounded-lg border-l-4 border-green-200 group hover:bg-green-100 transition-colors cursor-pointer"
-                        >
-                          <FaCheckCircle className="text-green-500 mt-1 flex-shrink-0 group-hover:scale-110 transition-transform" />
-                          <p className="text-gray-800 font-medium text-sm leading-relaxed">
-                            {text}
-                          </p>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
+                  ))}
                 </div>
-
-                {/* ❌ Removed the Submit Campaign button here */}
               </div>
             </div>
           </div>
@@ -265,26 +276,7 @@ export default function Home() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {[
-              {
-                title: "Any Level of Specificity",
-                description:
-                  "No matter how specific your criteria, we'll find creators that match — guaranteed.",
-                number: "01",
-              },
-              {
-                title: "Quality and Quantity",
-                description:
-                  "Whether you need creators who match specific niches, location, follower count, or any other criteria — Flair delivers both quality and scale.",
-                number: "02",
-              },
-              {
-                title: "Dynamic",
-                description:
-                  "Flair Select doesn't rely on vague filters or outdated tags. Our proprietary tech uses real-time data from social platforms to identify influencers that actually fit your campaign.",
-                number: "03",
-              },
-            ].map((feature, i) => (
+            {FEATURES.map((feature, i) => (
               <div
                 key={i}
                 className="group relative bg-gray-50 rounded-2xl p-8 hover:bg-white hover:shadow-xl transition-all duration-300 border border-gray-100"
@@ -305,9 +297,9 @@ export default function Home() {
 
           <div className="text-center mt-16 max-w-4xl mx-auto">
             <p className="text-xl text-gray-700 leading-relaxed">
-              This isn't just another generic influencer sourcing platform —
-              it's the future of creator sourcing. Welcome to precision. Welcome
-              to the best.
+              This isn't just another generic influencer sourcing platform — it's
+              the future of creator sourcing. Welcome to precision. Welcome to the
+              best.
             </p>
           </div>
         </div>
