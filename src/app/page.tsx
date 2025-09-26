@@ -57,42 +57,72 @@ export default function Home() {
   return (
     <main className="min-h-screen bg-gray-50 text-gray-900 relative overflow-x-hidden overflow-y-clip">
       {/* Header */}
-      <header className="border-b border-gray-200 bg-white/80 backdrop-blur-sm sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
-          <div className="text-2xl font-bold text-red-600">FLAIR</div>
-          {session?.user ? (
-            <div className="flex items-center gap-4">
-              <Link href="/pricing">
-                <button className="bg-red-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-red-700 transition-colors cursor-pointer">
-                  Pricing
-                </button>
-              </Link>
-              <span className="text-gray-600 font-medium">
-                Welcome, {companyName || "Company"}
-              </span>
-              <LogoutButton />
-            </div>
-          ) : (
-            <div className="flex items-center gap-6">
-              <Link href="/pricing">
-                <button className="bg-red-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-red-700 transition-colors cursor-pointer">
-                  Pricing
-                </button>
-              </Link>
-              <Link href="/forms?mode=login">
-                <button className="bg-gray-100 text-gray-700 px-4 py-2 rounded-lg text-sm font-medium hover:bg-gray-200 hover:text-gray-900 transition-colors cursor-pointer">
-                  Login
-                </button>
-              </Link>
-              <Link href="/forms?mode=signup">
-                <button className="bg-red-600 text-white px-6 py-2 rounded-lg font-medium hover:bg-red-700 transition-colors cursor-pointer">
-                  Sign Up
-                </button>
-              </Link>
-            </div>
-          )}
+{/* Header */}
+<header className="sticky top-0 z-50 border-b border-gray-200 bg-white/80 backdrop-blur-sm">
+  <div className="mx-auto max-w-7xl px-4 sm:px-6 py-3">
+    <nav className="flex items-center justify-between">
+      {/* Brand */}
+      <div className="text-2xl font-bold text-red-600">FLAIR</div>
+
+      {/* Actions */}
+      {session?.user ? (
+        <div className="flex items-center gap-2 sm:gap-3 md:gap-4 shrink-0">
+          <Link href="/pricing" className="whitespace-nowrap">
+            <button
+              className="px-3 py-1.5 md:px-4 md:py-2 text-sm md:text-base
+                         rounded-lg bg-red-600 text-white font-medium
+                         hover:bg-red-700 transition-colors cursor-pointer"
+            >
+              Pricing
+            </button>
+          </Link>
+
+          <span className="hidden xs:block text-[13px] sm:text-sm md:text-base text-gray-600 font-medium whitespace-nowrap">
+            Welcome, {companyName || "Company"}
+          </span>
+
+          <div className="whitespace-nowrap">
+            <LogoutButton />
+          </div>
         </div>
-      </header>
+      ) : (
+        <div className="flex items-center gap-2 sm:gap-3 md:gap-4 shrink-0">
+          <Link href="/pricing" className="whitespace-nowrap">
+            <button
+              className="px-3 py-1.5 md:px-4 md:py-2 text-sm md:text-base
+                         rounded-lg bg-red-600 text-white font-medium
+                         hover:bg-red-700 transition-colors cursor-pointer"
+            >
+              Pricing
+            </button>
+          </Link>
+
+          <Link href="/forms?mode=login" className="whitespace-nowrap">
+            <button
+              className="px-3 py-1.5 md:px-4 md:py-2 text-sm md:text-base
+                         rounded-lg bg-gray-100 text-gray-700
+                         hover:bg-gray-200 hover:text-gray-900
+                         transition-colors cursor-pointer"
+            >
+              Login
+            </button>
+          </Link>
+
+          <Link href="/forms?mode=signup" className="whitespace-nowrap">
+            <button
+              className="px-3 py-1.5 md:px-5 md:py-2 text-sm md:text-base
+                         rounded-xl bg-red-600 text-white font-semibold
+                         hover:bg-red-700 transition-colors cursor-pointer"
+            >
+              Sign Up
+            </button>
+          </Link>
+        </div>
+      )}
+    </nav>
+  </div>
+</header>
+
 
       {/* Hero Section */}
       <section className="pt-20 pb-16 px-6">
@@ -107,20 +137,19 @@ export default function Home() {
                     : "translate-y-8 opacity-0"
                 }`}
               >
-                <h2 className="text-lg text-gray-600 mb-3 font-medium">
-                  Welcome to
-                </h2>
+<h2 className="text-base text-gray-600 mb-2">Welcome to</h2>
 
+{/* Logo as its own block so it scales like a box, not inline text */}
+<img
+  src="/flair-logo.png"
+  alt="Flair Logo"
+  className="block h-28 sm:h-36 lg:h-44 object-contain mb-4"
+/>
 
-                <h1 className="text-7xl sm:text-8xl lg:text-9xl font-black mb-8 leading-none tracking-tight">
-  <img
-    src="/flair-logo.png"
-    alt="Flair Logo"
-    className="h-[1.2em] object-contain inline-block align-baseline"
-  />
-  <br />
-  <span className="text-gray-900">Select</span>
+<h1 className="text-6xl sm:text-8xl lg:text-9xl font-black leading-none tracking-tight text-gray-900">
+  Select
 </h1>
+
 
 
                 
@@ -134,7 +163,7 @@ export default function Home() {
                   — no matter how specific.
                   <br />
                   <br />
-                  Built with proprietary tools. Trusted by the best. Better than
+                 Trusted by the best. Better than
                   agencies.
                 </p>
 
